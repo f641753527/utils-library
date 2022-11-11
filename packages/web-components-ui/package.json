@@ -1,0 +1,38 @@
+{
+  "name": "@phoenix_fan/web-components-ui",
+  "version": "1.0.16",
+  "description": "基于web component 的跨技术栈组件库",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib/*"
+  ],
+  "scripts": {
+    "start": "webpack serve --config build/webpack.dev.js",
+    "build:cjs": "webpack --config build/webpack.prod.js",
+    "build:umd": "webpack --config build/webpack.prod.umd.js",
+    "build": "npm run build:cjs && npm run build:umd"
+  },
+  "keywords": [
+    "web-components-ui",
+    "cross-tech"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@types/react": "^18.0.24",
+    "@types/react-dom": "^18.0.8",
+    "css-loader": "^6.7.1",
+    "less-loader": "^6.2.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "url": "https://github.com/f641753527/web-components-ui",
+    "type": "github"
+  }
+}
