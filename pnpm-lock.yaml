@@ -39,7 +39,16 @@ importers:
       typescript: 4.8.4
 
   packages/lodash:
-    specifiers: {}
+    specifiers:
+      '@phoenix_fan/lodash': ^1.0.5
+    dependencies:
+      '@phoenix_fan/lodash': 1.0.5
+
+  packages/test:
+    specifiers:
+      '@phoenix_fan/lodash-es': workspace:^1.0.0
+    dependencies:
+      '@phoenix_fan/lodash-es': link:../lodash
 
 packages:
 
@@ -662,6 +671,11 @@ packages:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.13.0
     dev: true
+
+  /@phoenix_fan/lodash/1.0.5:
+    resolution: {integrity: sha512-yjbUVo4XjwPBdWTEOx0ojtiKsfuTCrj+d8smVKmEAuOr9XgToaiM8R+MOrm7nQGvs44LhkNLKT1Wvswg236qsw==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+    dev: false
 
   /@sindresorhus/is/0.7.0:
     resolution: {integrity: sha512-ONhaKPIufzzrlNbqtWFFd+jlnemX6lJAgq9ZeiZtS7I1PIf/la7CW4m83rTXRnVnsMbW2k56pGYu7AUFJD9Pow==}
