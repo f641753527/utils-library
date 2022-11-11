@@ -1,0 +1,31 @@
+{
+  "name": "cli",
+  "version": "1.0.0",
+  "description": "> TODO: description",
+  "author": "Phoenix <641753527@qq.com>",
+  "homepage": "https://github.com/f641753527/phoenix#readme",
+  "license": "ISC",
+  "main": "index.js",
+  "private": false,
+  "bin": {
+    "phoenix": "index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/f641753527/phoenix.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/f641753527/phoenix/issues"
+  },
+  "devDependencies": {
+    "commander": "^8.3.0",
+    "download-git-repo": "^3.0.2",
+    "open": "^8.4.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

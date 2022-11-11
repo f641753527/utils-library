@@ -1,0 +1,30 @@
+{
+  "name": "@phoenix_fan/fetch",
+  "version": "1.0.6",
+  "description": "> TODO: description",
+  "author": "Phoenix <641753527@qq.com>",
+  "homepage": "",
+  "license": "ISC",
+  "private": false,
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup index.ts --format cjs,esm  --dts"
+  },
+  "devDependencies": {
+    "jest": "^27.4.3",
+    "tsup": "^5.11.3",
+    "typescript": "^4.5.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "gitHead": "a04d741db029e4c22ea8edae6633ae5793b57681",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:f641753527/phoenix.git",
+    "directory": "packages/fetch"
+  }
+}

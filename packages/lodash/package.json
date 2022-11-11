@@ -1,0 +1,33 @@
+{
+  "name": "@phoenix_fan/lodash-es",
+  "version": "1.0.0",
+  "description": "Personal lodash tools",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib/*"
+  ],
+  "scripts": {
+    "build:cjs": "webpack --config build/webpack.prod.js",
+    "build:umd": "webpack --config build/webpack.prod.umd.js",
+    "build": "npm run build:cjs && npm run build:umd"
+  },
+  "keywords": [
+    "lodash",
+    "tools"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+  },
+  "dependencies": {
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "url": "https://github.com/f641753527/web-components-ui",
+    "type": "github"
+  }
+}
