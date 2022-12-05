@@ -1,6 +1,6 @@
 {
   "name": "@phoenix_fan/lodash-es",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Personal lodash tools",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -25,7 +25,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "repository": {
-    "url": "https://github.com/f641753527/web-components-ui",
+    "url": "https://github.com/f641753527/utils-library",
     "type": "github"
   }
 }
