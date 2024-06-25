@@ -1,8 +1,6 @@
 const path = require('path')
 const { merge } = require('webpack-merge')
 const htmlWebpackPlugin = require('html-webpack-plugin')
-const { VueLoaderPlugin } = require('vue-loader')
-const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const config = require('./webpack.base')
 
 module.exports = merge(config, {
@@ -21,23 +19,9 @@ module.exports = merge(config, {
   },
   module: {
     rules: [
-      {
-        test: /\.vue$/,
-        loader: 'vue-loader'
-      },
-      {
-        test: /\.css$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader']
-      },
-      {
-        test: /\.less$/,
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'less-loader']
-      }
     ]
   },
   plugins: [
-    new VueLoaderPlugin(),
-    new MiniCssExtractPlugin({}),
     new htmlWebpackPlugin({
       template: path.resolve(__dirname, '../public/index.html')
     }),
