@@ -1,5 +1,6 @@
 import type { ICanvasTableConstructorProps, IColumnProps, IAnyStructure } from './types'
 import { ctxDrawLine } from './utils'
+import { style } from './const'
 
 /**
  * @description canvas-table
@@ -12,14 +13,17 @@ export default class CanvasTable {
     private columns: IColumnProps[];
     private sourceData: IAnyStructure[];
     /** 当前展示数据 */
-    private tableData: IAnyStructure[];
+    private tableData: IAnyStructure[] = [];
+    /** canvas 总高度 (header + body) */
     private height: number;
+    /** canvas 总宽度 */
+    private width: number = 0;
     private headerHight: number;
     private rowHeight: number;
 
     /** 数据渲染开始位置 */
-    private startIndex: number;
-    private endIndex: number;
+    private startIndex: number = 0;
+    private endIndex: number = 0;
 
     constructor(options: ICanvasTableConstructorProps) {
         const { clientWidth, canvas, table } = options;
@@ -30,43 +34,64 @@ export default class CanvasTable {
 
         this.columns = columns;
         this.sourceData = data;
-        this.tableData = [];
-        this.height = height as number;
+        this.height = (height as number) + (headerHight as number);
         this.headerHight = (headerHight as number)
         this.rowHeight = rowHeight as number;
-
-        this.startIndex = 0;
-        this.endIndex = 0;
 
         this.init()
     }
 
     init() {
-        this.setColumnsWidth();
+        this.initColumnsWidth();
+        this.setCanvasSize();
         // 初始化数据
         this.setDataByPage();
         // 纵向滚动条Y
         // this.setScrollY();
     }
     /** 设置单元格宽度 */
-    setColumnsWidth() {
-        const flexColumns = this.columns.filter(col => col.hasOwnProperty('minWidth') && typeof col.minWidth === 'number')
-        const fixedColumns = this.columns.filter(col => col.hasOwnProperty('width') && typeof col.width === 'number')
-        /** 固定的宽度 */
-        const fixedWidth = fixedColumns.reduce((res, col) => res + (col.width as number), 0)
-        if (flexColumns && flexColumns.length) {
-            this.canvas.width = this.clientWidth
-            flexColumns.forEach(col => {
-                col.width = (col.minWidth as number) / (this.clientWidth - fixedWidth)
-            })
-        } else {
-            this.canvas.width = fixedWidth
-        }
+    initColumnsWidth() {
+        /** 固定宽度的列宽汇总 */
+        let staticWidth = 0;
+        /** 伸缩列宽度汇总 */
+        let flexWidth = 0;
+        /** 固定列列宽列宽(设置了fixed的列宽求和) */
+        let fixedWidth = 0;
+        let canvasWidth = 0;
+        this.columns.forEach(col => {
+            staticWidth += col.width || 0;
+            flexWidth += col.minWidth && !col.width ? col.minWidth : 0;
+        })
+        /** 屏幕剩余宽度(可供伸缩列分配的区域 即减去了固定宽度的列之后的剩余空间) */
+        const screenLeftWidth = this.clientWidth - staticWidth
+        /** 设置列宽度 优先取width 否则取minWidth */
+        this.columns.forEach((col, i) => {
+            col.width = col.width || Math.max(
+                col.minWidth || 0,
+                (col.minWidth as number) / (flexWidth || Infinity) * screenLeftWidth
+            );
+            if (i === this.columns.length - 1 && screenLeftWidth && flexWidth) {
+                col.width = this.clientWidth - canvasWidth;
+            }
+            canvasWidth += col.width;
+            if (col.fixed === 'left' || col.fixed === 'right') {
+                fixedWidth += col.width;
+            }
+        })
+        this.width = Math.max(
+            Math.min(this.clientWidth, canvasWidth),
+            /** canvas width 不能小于固定列宽度 */
+            fixedWidth + 200
+        );
+    }
+    setCanvasSize() {
+        this.canvas.height = this.height;
+        this.canvas.width = this.width;
     }
     /** 设置当前可视区展示的数据 */
     setDataByPage() {
         /** 可视区展示的条数 */
-        const limit = Math.floor((this.height - this.headerHight) / this.rowHeight);
+        const limit = Math.floor(this.height / this.rowHeight);
         this.endIndex = Math.min(this.startIndex + limit, this.sourceData.length);
         this.tableData = this.sourceData.slice(this.startIndex, this.endIndex);
         // 清除画布
@@ -87,8 +112,14 @@ export default class CanvasTable {
     drawHeader() {
         const { canvasCtx, canvas, headerHight, columns } = this;
 
-        canvasCtx.strokeStyle = '#ccc'
+        const headerStyle = { ...style, ...style.header };
+
+        /** 背景色 */
+        canvasCtx.fillStyle = headerStyle.backgroundColor as string;
+        canvasCtx.fillRect(0, 0, this.width, this.headerHight);
+
         canvasCtx.lineWidth = 1;
+        canvasCtx.strokeStyle = headerStyle.borderColor as string;
 
         // top
         ctxDrawLine(canvasCtx, 0, 0.5, canvas.width, 0.5)
@@ -103,12 +134,16 @@ export default class CanvasTable {
         ctxDrawLine(canvasCtx, canvas.width, 0, canvas.width, headerHight - 0.5)
 
         let x = 0
-        const fontSize = 12
-        canvasCtx.font = `${'normal'} ${fontSize}px ${'Microsoft YaHei'}`
-        columns.forEach(col => {
+        const fontSize = headerStyle.fontSize as number;
+        canvasCtx.font = `${headerStyle.fontWeight} ${fontSize}px ${'Microsoft YaHei'}`
+        columns.forEach((col, i) => {
+            canvasCtx.fillStyle = headerStyle.color as string;
             canvasCtx.fillText(col.label, x + 8, fontSize + (headerHight - fontSize) / 2)
             x += col.width as number
             /** right line */
+            if (i === columns.length - 1) return
+            canvasCtx.lineWidth = 1;
+            canvasCtx.strokeStyle = headerStyle.borderColor as string;
             ctxDrawLine(canvasCtx, x - 0.5, 0, x - 0.5, headerHight - 0.5)
         })
     }

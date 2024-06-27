@@ -1,6 +1,6 @@
 <template>
     <div class="phoenix_canvas-table--container">
-        <canvas class="phoenix_canvas-table--content" :height="props.height"></canvas>
+        <canvas class="phoenix_canvas-table--content"></canvas>
     </div>
 </template>
 
@@ -11,8 +11,8 @@ import CanvasTable from './CanvasTable'
 
 const props = withDefaults(defineProps<ITableCompProps>(), {
     height: 300,
-    rowHeight: 30,
-    headerHight: 30,
+    headerHight: 32,
+    rowHeight: 28,
 })
 
 onMounted(() => {

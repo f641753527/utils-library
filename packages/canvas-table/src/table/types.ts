@@ -4,6 +4,8 @@ export interface IColumnProps {
     key: string;
     width?: number;
     minWidth?: number;
+    /** 左侧或右侧固定 */
+    fixed?: 'left' | 'right';
 }
 
 /** 任意JSON */
@@ -26,4 +28,20 @@ export interface ICanvasTableConstructorProps {
     clientWidth: number;
     canvas: HTMLCanvasElement;
     table: ITableCompProps;
+}
+
+interface baseStyle {
+    padding?: number | number[];
+    backgroundColor?: string;
+    borderColor?: string;
+    borderWidth?: number;
+    color?: string;
+    fontSize?: number;
+    fontWeight?: string | number;
+}
+
+/** CanvasTable 样式 */
+export interface IStyle extends baseStyle {
+    header?: baseStyle;
+    summary?: baseStyle;
 }

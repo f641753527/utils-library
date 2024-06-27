@@ -16,7 +16,12 @@ const columns = [
     { label: "年龄", key: "age", width: 120 },
     { label: "学校", key: "school", width: 120 },
     { label: "分数", key: "source", width: 120 },
-    { label: "操作", key: "options", minWidth: 120 }
+    { label: "操作", key: "options", width: 120 },
+    { label: "姓名", key: "name", width: 120 },
+    { label: "年龄", key: "age", width: 120 },
+    { label: "学校", key: "school", width: 120 },
+    { label: "分数", key: "source", width: 120 },
+    { label: "操作", key: "options", width: 120 }
 ]
 const tableData = new Array(30).fill(null).map(v => ({
     id: ~~(Math.random() * 999999999),
