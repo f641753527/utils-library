@@ -8,7 +8,7 @@ export const style: IStyle = {
         borderColor: '#d2d2d6',
         backgroundColor: '#ebecf0',
     },
-    padding: 6,
+    padding: [6, 6, 6, 6],
     borderColor: '#d2d2d6',
     borderWidth: 1,
     backgroundColor: '#FFF',

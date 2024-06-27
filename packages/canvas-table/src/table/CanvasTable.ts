@@ -1,5 +1,6 @@
 import type { ICanvasTableConstructorProps, IColumnProps, IAnyStructure } from './types'
-import { ctxDrawLine } from './utils'
+import { POSITION } from './types'
+import { drawCellBorder, drawCellText } from './draw'
 import { style } from './const'
 
 /**
@@ -118,33 +119,41 @@ export default class CanvasTable {
         canvasCtx.fillStyle = headerStyle.backgroundColor as string;
         canvasCtx.fillRect(0, 0, this.width, this.headerHight);
 
-        canvasCtx.lineWidth = 1;
-        canvasCtx.strokeStyle = headerStyle.borderColor as string;
-
-        // top
-        ctxDrawLine(canvasCtx, 0, 0.5, canvas.width, 0.5)
-
-        // bottom
-        ctxDrawLine(canvasCtx, 0, headerHight - 0.5, canvas.width, headerHight - 0.5)
-        
-        // left
-        ctxDrawLine(canvasCtx, 0, 0, 0, headerHight - 0.5)
-
-        // right
-        ctxDrawLine(canvasCtx, canvas.width, 0, canvas.width, headerHight - 0.5)
+        Object.keys(POSITION).forEach((key) => {
+            drawCellBorder({
+                ctx: canvasCtx,
+                x: 0,
+                y: 0,
+                width: canvas.width,
+                height: headerHight,
+                position: POSITION[key as keyof typeof POSITION],
+                style: headerStyle,
+            })
+        });
 
         let x = 0
-        const fontSize = headerStyle.fontSize as number;
-        canvasCtx.font = `${headerStyle.fontWeight} ${fontSize}px ${'Microsoft YaHei'}`
         columns.forEach((col, i) => {
-            canvasCtx.fillStyle = headerStyle.color as string;
-            canvasCtx.fillText(col.label, x + 8, fontSize + (headerHight - fontSize) / 2)
-            x += col.width as number
+            drawCellText({
+                ctx: canvasCtx,
+                label: col.label,
+                x,
+                y: 0,
+                width: col.width as number,
+                height: headerHight,
+                style: headerStyle,
+            });
             /** right line */
-            if (i === columns.length - 1) return
-            canvasCtx.lineWidth = 1;
-            canvasCtx.strokeStyle = headerStyle.borderColor as string;
-            ctxDrawLine(canvasCtx, x - 0.5, 0, x - 0.5, headerHight - 0.5)
+            if (i === columns.length - 1) return;
+            drawCellBorder({
+                ctx: canvasCtx,
+                x,
+                y: 0,
+                width: col.width as number,
+                height: headerHight,
+                position: POSITION.RIGHT,
+                style: headerStyle,
+            })
+            x += col.width as number;
         })
     }
     /** 绘制body */

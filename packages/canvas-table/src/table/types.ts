@@ -31,7 +31,7 @@ export interface ICanvasTableConstructorProps {
 }
 
 interface baseStyle {
-    padding?: number | number[];
+    padding?: [number, number, number, number];
     backgroundColor?: string;
     borderColor?: string;
     borderWidth?: number;
@@ -44,4 +44,13 @@ interface baseStyle {
 export interface IStyle extends baseStyle {
     header?: baseStyle;
     summary?: baseStyle;
+}
+
+// export type TPosition = 'left' | 'right' | 'top' | 'bottom'
+/** 方向枚举 */
+export enum POSITION {
+    LEFT = 'left',
+    RIGHT = 'right',
+    TOP = 'top',
+    BOTTOM = 'bottom',
 }
