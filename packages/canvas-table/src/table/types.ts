@@ -28,6 +28,7 @@ export interface ICanvasTableConstructorProps {
     clientWidth: number;
     canvas: HTMLCanvasElement;
     table: ITableCompProps;
+    scrollBarY: HTMLElement;
 }
 
 interface baseStyle {
@@ -38,6 +39,7 @@ interface baseStyle {
     color?: string;
     fontSize?: number;
     fontWeight?: string | number;
+    primary?: string;
 }
 
 /** CanvasTable 样式 */

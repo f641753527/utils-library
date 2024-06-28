@@ -12,14 +12,16 @@ import Table from './index.js'
 import { generateRandomChineseChar } from './utils'
 
 const columns = [
+    { label: "序号", key: "index", width: 60 },
     { label: "姓名", key: "name", width: 120 },
     { label: "年龄", key: "age", width: 120 },
     { label: "学校", key: "school", width: 120 },
     { label: "分数分数分数分数分数分数分数分数", key: "source", width: 120 },
     { label: "操作", key: "options", minWidth: 120 },
 ]
-const tableData = new Array(30).fill(null).map(v => ({
+const tableData = new Array(30).fill(null).map((v, i) => ({
     id: ~~(Math.random() * 999999999),
+    index: i + 1,
     name: generateRandomChineseChar(~~(Math.random() * 2) + 2),
     age: ~~(Math.random() * 99),
     school: generateRandomChineseChar(~~(Math.random() * 10) + 5),

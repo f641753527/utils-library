@@ -1,6 +1,7 @@
 import type { ICanvasTableConstructorProps, IColumnProps, IAnyStructure } from './types'
 import { POSITION } from './types'
 import { drawCellBorder, drawCellText } from './draw'
+import { throttle } from './utils'
 import { style } from './const'
 
 /**
@@ -23,12 +24,22 @@ export default class CanvasTable {
     private rowHeight: number;
 
     /** 数据渲染开始位置 */
+    /** 纵向滚动条占比 */
+    private scrollX: number = 0;
+    private scrollY: number = 0;
+    private maxScrollY: number = 0;
+
     private startIndex: number = 0;
     private endIndex: number = 0;
 
+    private scrollBarY: HTMLElement;
+
     constructor(options: ICanvasTableConstructorProps) {
-        const { clientWidth, canvas, table } = options;
-        const { columns, data, height, headerHight, rowHeight } = table
+        const { clientWidth, canvas, table, scrollBarY } = options;
+        const { columns, data, headerHight, rowHeight } = table;
+        let { height } = table;
+        height = Math.min(height as number, data.length * (rowHeight as number))
+
         this.clientWidth = clientWidth
         this.canvas = canvas;
         this.canvasCtx = canvas.getContext("2d") as CanvasRenderingContext2D;
@@ -39,16 +50,30 @@ export default class CanvasTable {
         this.headerHight = (headerHight as number)
         this.rowHeight = rowHeight as number;
 
+        this.scrollBarY = scrollBarY;
         this.init()
     }
 
     init() {
+        this.initScrollBar()
         this.initColumnsWidth();
         this.setCanvasSize();
         // 初始化数据
         this.setDataByPage();
         // 纵向滚动条Y
-        // this.setScrollY();
+        this.initEvents();
+    }
+
+    initScrollBar() {
+        const { sourceData, rowHeight, headerHight, height, } = this
+        /** 表格行高度 */
+        const bodyHeight = height - headerHight
+        const scrollBarYRate = bodyHeight / ((sourceData.length  * rowHeight) || bodyHeight);
+        /** 滚动条 内部块高度 */
+        const scrollBarYHeight = scrollBarYRate * bodyHeight;
+
+        this.scrollBarY.style.height = scrollBarYHeight + 'px';
+        this.maxScrollY = (1 - scrollBarYRate) * (sourceData.length  * rowHeight);
     }
     /** 设置单元格宽度 */
     initColumnsWidth() {
@@ -93,14 +118,15 @@ export default class CanvasTable {
     setDataByPage() {
         /** 可视区展示的条数 */
         const limit = Math.ceil((this.height - this.headerHight) / this.rowHeight);
+        this.startIndex = ~~(this.scrollY / this.rowHeight);
         this.endIndex = Math.min(this.startIndex + limit, this.sourceData.length);
-        this.tableData = this.sourceData.slice(this.startIndex, this.endIndex);
+        this.tableData = this.sourceData.slice(this.startIndex, this.endIndex + 1);
         // 清除画布
         this.clearCanvans();
-        // 绘制表头
-        this.drawHeader();
         // 绘制body
         this.drawBody();
+         // 绘制表头
+         this.drawHeader();
     }
     /** 清除画布 */
     clearCanvans() {
@@ -114,6 +140,8 @@ export default class CanvasTable {
         const { canvasCtx, canvas, headerHight, columns } = this;
 
         const headerStyle = { ...style, ...style.header };
+
+        canvasCtx.clearRect(0, 0, canvas.width, headerHight);
 
         /** 背景色 */
         canvasCtx.fillStyle = headerStyle.backgroundColor as string;
@@ -172,7 +200,7 @@ export default class CanvasTable {
             drawCellBorder({
                 ctx: canvasCtx,
                 x: 0,
-                y: headerHight + rowHeight * i,
+                y: headerHight + rowHeight * i - (this.scrollY % rowHeight),
                 width: canvas.width,
                 height: rowHeight,
                 position: POSITION.BOTTOM,
@@ -200,7 +228,7 @@ export default class CanvasTable {
                     ctx: canvasCtx,
                     label: row[col.key],
                     x,
-                    y: headerHight + rowHeight * rowIndex,
+                    y: headerHight + rowHeight * rowIndex - (this.scrollY % rowHeight),
                     width: col.width as number,
                     height: rowHeight,
                     style,
@@ -208,5 +236,29 @@ export default class CanvasTable {
                 x += col.width as number;
             })
         })
+    }
+
+    initEvents() {
+        this.canvas.addEventListener('wheel', this.onWheel, { passive: false })
+    }
+    onWheel = (e: WheelEvent) => {
+        const { deltaX, deltaY } = e
+        // 判断是横向滚动还是纵向滚动
+        let isHScroll = Math.abs(deltaX) > Math.abs(deltaY);
+        if (
+            !isHScroll &&
+            ((deltaY > 0 && this.scrollY < this.maxScrollY) ||
+                (deltaY < 0 && this.scrollY > 0)
+            )
+        ) {
+            e.preventDefault();
+            const totalHeight = this.sourceData.length  * this.rowHeight;
+            let scrollY = this.scrollY + deltaY;
+            scrollY = scrollY < 0 ? 0 : (scrollY > this.maxScrollY ? this.maxScrollY : scrollY);
+            this.scrollY = scrollY;
+            this.scrollBarY.style.top = (this.scrollY / totalHeight) * (this.height - this.headerHight) + 'px';
+            // throttle(this.setDataByPage, 200)
+            this.setDataByPage();
+        }
     }
 }

@@ -14,4 +14,5 @@ export const style: IStyle = {
     backgroundColor: '#FFF',
     color: '#333',
     fontSize: 12,
+    primary: '#096dd9',
 }
