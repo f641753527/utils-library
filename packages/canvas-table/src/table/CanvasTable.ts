@@ -92,7 +92,7 @@ export default class CanvasTable {
     /** 设置当前可视区展示的数据 */
     setDataByPage() {
         /** 可视区展示的条数 */
-        const limit = Math.floor(this.height / this.rowHeight);
+        const limit = Math.ceil((this.height - this.headerHight) / this.rowHeight);
         this.endIndex = Math.min(this.startIndex + limit, this.sourceData.length);
         this.tableData = this.sourceData.slice(this.startIndex, this.endIndex);
         // 清除画布
@@ -119,14 +119,14 @@ export default class CanvasTable {
         canvasCtx.fillStyle = headerStyle.backgroundColor as string;
         canvasCtx.fillRect(0, 0, this.width, this.headerHight);
 
-        Object.keys(POSITION).forEach((key) => {
+        [POSITION.TOP, POSITION.BOTTOM].forEach(position => {
             drawCellBorder({
                 ctx: canvasCtx,
                 x: 0,
                 y: 0,
                 width: canvas.width,
                 height: headerHight,
-                position: POSITION[key as keyof typeof POSITION],
+                position,
                 style: headerStyle,
             })
         });
@@ -142,22 +142,71 @@ export default class CanvasTable {
                 height: headerHight,
                 style: headerStyle,
             });
-            /** right line */
-            if (i === columns.length - 1) return;
-            drawCellBorder({
-                ctx: canvasCtx,
-                x,
-                y: 0,
-                width: col.width as number,
-                height: headerHight,
-                position: POSITION.RIGHT,
-                style: headerStyle,
-            })
             x += col.width as number;
         })
     }
     /** 绘制body */
     drawBody() {
+        const { canvasCtx, canvas, height, headerHight, rowHeight, columns, tableData } = this;
 
+        drawCellBorder({
+            ctx: canvasCtx,
+            x: 0,
+            y: 0,
+            width: canvas.width,
+            height: this.height,
+            position: POSITION.BOTTOM,
+            style: style,
+        })
+        drawCellBorder({
+            ctx: canvasCtx,
+            x: 0,
+            y: 0,
+            width: canvas.width,
+            height: height,
+            position: POSITION.LEFT,
+            style: style,
+        })
+
+        for (let i = 0; i < tableData.length; i++) {
+            drawCellBorder({
+                ctx: canvasCtx,
+                x: 0,
+                y: headerHight + rowHeight * i,
+                width: canvas.width,
+                height: rowHeight,
+                position: POSITION.BOTTOM,
+                style: style,
+            })
+        }
+
+        let x = 0
+        columns.forEach((col, i) => {
+            drawCellBorder({
+                ctx: canvasCtx,
+                x,
+                y: 0,
+                width: col.width as number,
+                height: this.height,
+                position: POSITION.RIGHT,
+                style: style,
+            })
+            x += col.width as number;
+        })
+        tableData.forEach((row, rowIndex) => {
+            x = 0;
+            columns.forEach(col => {
+                drawCellText({
+                    ctx: canvasCtx,
+                    label: row[col.key],
+                    x,
+                    y: headerHight + rowHeight * rowIndex,
+                    width: col.width as number,
+                    height: rowHeight,
+                    style,
+                });
+                x += col.width as number;
+            })
+        })
     }
 }

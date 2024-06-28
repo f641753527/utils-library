@@ -60,5 +60,5 @@ export const drawCellText = (config: {
 
     const { text } = textOverflow(ctx, label, width - padding[1] -  padding[3], fontSize, fontWeight)
 
-    ctx.fillText(text, x + padding[3], fontSize + (height - fontSize) / 2);
+    ctx.fillText(text, x + padding[3], y + fontSize + (height - fontSize) / 2);
 }
