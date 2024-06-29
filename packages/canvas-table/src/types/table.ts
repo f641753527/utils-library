@@ -22,5 +22,5 @@ export interface ITableAttrs {
 
 /** canvas-table 构造器 */
 export interface TableWrapperConstructor extends ITableAttrs {
-  el?: HTMLElement;
+  el: string;
 }

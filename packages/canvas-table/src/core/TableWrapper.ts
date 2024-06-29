@@ -4,15 +4,18 @@ import ScrollBar from './ScrollBar';
 import { defaultTableAttrs } from './const';
 
 export default class CanvasTableWrapper {
-  private el: HTMLElement;
+  private querySelector: string;
+  private el: HTMLElement | null;
   private table: Table;
   private scrollBarY: ScrollBar;
 
   constructor(options: TableWrapperConstructor) {
-    let { el = document.body, ...tableAttrs } = options;
+    let { el, ...tableAttrs } = options;
+
+    this.querySelector = el;
 
     /** canvas table 挂载的el节点 */
-    this.el = el;
+    this.el = document.querySelector(el);
 
     /** 纵向滚动条 */
     this.scrollBarY = new ScrollBar({ direction: EnumScrollBarDirection.VERTICAL })
@@ -23,28 +26,35 @@ export default class CanvasTableWrapper {
     this.table = new Table(combinedTableAttrs);
 
     this.onMount();
-    this.initEvents();
-    
   }
 
   /** el 节点挂载 */
   onMount = () => {
-    const { el, scrollBarY, table } = this;
-
-    const image = new Image();
-    image.onload = () => {
-      console.log('el节点已挂载, 宽度: ', el.clientWidth);
-      const tableWrapperEl = document.createElement('div');
-      tableWrapperEl.style.position = 'relative';
-      tableWrapperEl.style.fontSize = '0';
-      table.clientWidth = el.clientWidth;
-      tableWrapperEl.appendChild(table.canvas);
-      tableWrapperEl.appendChild(scrollBarY.scrollBarBox);
-      el.appendChild(tableWrapperEl);
-      /** 初始化表格配置 */
-      this.init();
+    if (!this.el) {
+      document.addEventListener('DOMContentLoaded', () => {
+        this.el = document.querySelector(this.querySelector);
+        this.el = this.el || document.body;
+        this.createTableEl();
+      })
+    } else {
+      this.createTableEl();
     }
-    image.src = 'https://inews.gtimg.com/om_bt/OGlQWfsaAoKkuCcMZ2o9IVEPqd-72DQy5EAN02XBHUwfYAA/641'
+  }
+
+  private createTableEl() {
+    const { scrollBarY, table } = this;
+    const el = this.el as HTMLElement;
+
+    console.log('el节点已挂载, 宽度: ', el.clientWidth);
+    const tableWrapperEl = document.createElement('div');
+    tableWrapperEl.style.position = 'relative';
+    tableWrapperEl.style.fontSize = '0';
+    table.clientWidth = el.clientWidth;
+    tableWrapperEl.appendChild(table.canvas);
+    tableWrapperEl.appendChild(scrollBarY.scrollBarBox);
+    el.appendChild(tableWrapperEl);
+    /** 初始化表格配置 */
+    this.init();
   }
 
   private init() {
@@ -78,18 +88,21 @@ export default class CanvasTableWrapper {
 
   /** 鼠标滚轮 */
   private onWheel = (e: WheelEvent) => {
+    e.preventDefault();
     const { deltaX, deltaY } = e;
     // 判断是横向滚动还是纵向滚动
-    const isHScroll = Math.abs(deltaX) > Math.abs(deltaY);
+    const isVertical = Math.abs(deltaY) > Math.abs(deltaX);
     const { maxScrollDistance, scrollDistance } = this.scrollBarY;
 
-    if (
-      !isHScroll &&
-      ((deltaY > 0 && scrollDistance < maxScrollDistance) ||
-        (deltaY < 0 && scrollDistance > 0)
-      )
-    ) {
-      e.preventDefault();
+    if (isVertical) {
+      /** 滚到底了 */
+      if (deltaY > 0 && scrollDistance >= maxScrollDistance) {
+        return
+      }
+      /** 到顶了 */
+      if (deltaY < 0 && scrollDistance <= 0) {
+        return
+      }
       let scrollY = scrollDistance + deltaY;
       scrollY = scrollY < 0 ? 0 : (scrollY > maxScrollDistance ? maxScrollDistance : scrollY);
       this.scrollBarY.scrollDistance = scrollY;
@@ -97,5 +110,4 @@ export default class CanvasTableWrapper {
       this.table.draw();
     }
   }
-
 }

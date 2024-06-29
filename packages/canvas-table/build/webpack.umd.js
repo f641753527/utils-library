@@ -9,6 +9,6 @@ module.exports = merge(config, {
     filename: 'index.umd.js'
   },
   optimization: {
-    minimize: false,
+    minimize: true,
   },
 })
