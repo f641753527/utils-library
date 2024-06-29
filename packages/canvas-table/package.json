@@ -1,6 +1,6 @@
 {
   "name": "@phoenix_fan/canvas-table",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "上万行数据渲染之终极方案：canvas-table",
   "main": "lib/index.js",
   "files": [

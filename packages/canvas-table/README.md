@@ -92,4 +92,4 @@ const instance = new Table({
 
 ### 效果图
 
-![效果图](./public/static/screen.jpg)
+![效果图](https://github.com/f641753527/utils-library/blob/master/packages/canvas-table/public/static/screen.jpg)
