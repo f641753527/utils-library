@@ -34,9 +34,6 @@
   "homepage": "https://github.com/f641753527/utils-library#readme",
   "devDependencies": {
     "mini-css-extract-plugin": "^2.9.0",
-    "vue": "^3.4.29",
-    "vue-loader": "^17.4.2",
-    "vue-style-loader": "^4.1.3",
     "babel-loader": "^9.1.3"
   }
 }
