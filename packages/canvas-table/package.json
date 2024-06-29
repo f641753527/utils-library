@@ -1,14 +1,18 @@
 {
   "name": "@phoenix_fan/canvas-table",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "上万行数据渲染之终极方案：canvas-table",
   "main": "lib/index.js",
   "files": [
     "lib/*"
   ],
   "scripts": {
-    "dev": "webpack serve --config build/webpack.dev.js",
-    "build": "webpack --config build/webpack.prod.js"
+    "dev:cjs": "webpack --config build/webpack.cjs.js --watch",
+    "dev:umd": "webpack --config build/webpack.umd.js --watch",
+    "build:cjs": "webpack --config build/webpack.cjs.js",
+    "build:umd": "webpack --config build/webpack.umd.js",
+    "build": "npm run build:cjs && npm run build:umd"
+
   },
   "repository": {
     "type": "git",

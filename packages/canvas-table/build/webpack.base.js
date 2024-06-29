@@ -1,34 +1,27 @@
 const path = require('path')
-const { VueLoaderPlugin } = require('vue-loader')
-const MiniCssExtractPlugin = require("mini-css-extract-plugin")
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
+  entry: {
+    index: path.resolve(__dirname, '../src/index.ts'),
+  },
   output: {
     path: path.resolve(__dirname, '../lib'),
-    filename: 'index.js'
   },
   resolve: {
-    extensions: ['.js', '.css', '.ts', '.vue'],
+    extensions: ['.js', '.ts'],
   },
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
+        test: /\.ts$/,
         loader: 'ts-loader',
-        options: {
-          appendTsSuffixTo: [/\.vue$/],
-        },
         exclude: /node_modules/,
       },
       {
         test: /\.js$/,
         exclude: /node_modules/,
         use: 'babel-loader'
-      },
-      {
-        test: /\.vue$/,
-        exclude: /node_modules/,
-        loader: 'vue-loader'
       },
       {
         test: /\.css$/,
@@ -43,7 +36,6 @@ module.exports = {
     ],
   },
   plugins: [
-    new VueLoaderPlugin(),
-    new MiniCssExtractPlugin({}),
+    new MiniCssExtractPlugin({})
   ]
 }

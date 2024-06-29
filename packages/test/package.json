@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@phoenix_fan/lodash-es": "workspace:^1.0.0"
+    "@phoenix_fan/canvas-table": "workspace:^",
+    "@phoenix_fan/lodash-es": "workspace:^1.0.0",
+    "@phoenix_fan/web-components-ui": "workspace:^"
   }
 }

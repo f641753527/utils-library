@@ -1,0 +1,23 @@
+.canvas-table-scroll-bar{
+  position: absolute;
+  &--slider{
+    position: absolute;
+    opacity: 0.6;
+    cursor: pointer;
+    &:hover{
+      opacity: 1;
+    }
+  }
+  &-y{
+    right: 0;
+    bottom: 0;
+    width: var(--bar-width);
+    .canvas-table-scroll-bar--slider{
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 4px);
+      background-color: var(--primary-color);
+      border-radius: 100px;
+    }
+  }
+}
