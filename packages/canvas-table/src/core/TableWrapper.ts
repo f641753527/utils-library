@@ -71,6 +71,10 @@ export default class CanvasTableWrapper {
 
   private initScrollBarY() {
     const { headerHight, maxScrollY } = this.table;
+    if (maxScrollY <= 0) {
+      this.scrollBarY.scrollBarBox.style.display = 'none';
+      return
+    }
     /** tBody总高 */
     const height = this.table.canvas.height - headerHight;
 
