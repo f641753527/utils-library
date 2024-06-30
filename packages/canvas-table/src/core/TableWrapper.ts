@@ -18,12 +18,17 @@ export default class CanvasTableWrapper {
     this.el = document.querySelector(el);
 
     /** 纵向滚动条 */
-    this.scrollBarY = new ScrollBar({ direction: EnumScrollBarDirection.VERTICAL })
+    this.scrollBarY = new ScrollBar({
+      direction: EnumScrollBarDirection.VERTICAL,
+      onDrag: this.onScrollBarYDrag,
+    })
 
-    /** table  属性 */
-    const combinedTableAttrs = { ...defaultTableAttrs, ...tableAttrs, };
     /** 表格实例 */
-    this.table = new Table(combinedTableAttrs);
+    this.table = new Table({
+      ...defaultTableAttrs,
+      ...tableAttrs,
+      onWheel: this.onCanvasWheel,
+    });
 
     this.onMount();
   }
@@ -65,49 +70,30 @@ export default class CanvasTableWrapper {
   }
 
   private initScrollBarY() {
-    const { sourceData, rowHeight, headerHight } = this.table;
+    const { headerHight, maxScrollY } = this.table;
     /** tBody总高 */
     const height = this.table.canvas.height - headerHight;
 
     /** 滚动条内部块占总高度占比 */
-    const scrollBarRate = height / ((sourceData.length  * rowHeight) || height);
+    const scrollBarRate = height / ((height + maxScrollY) || Infinity);
     /** 滚动条 内部块高度 */
     const scrollBarHeight = scrollBarRate * height;
 
-    const maxScrollDistance = (1 - scrollBarRate) * (sourceData.length  * rowHeight);
-
     this.scrollBarY.outerLength = height;
     this.scrollBarY.innerLength = scrollBarHeight;
-    this.scrollBarY.maxScrollDistance = maxScrollDistance;
   }
 
+  private onScrollBarYDrag = (offset: number, maxOffset: number) => {
+    const { maxScrollY } = this.table;
+    this.table.scrollY = maxScrollY * (offset / (maxOffset || Infinity));
+    this.table.draw();
+  }
+
+  private onCanvasWheel = (scrollDistance: number, maxScrollDistance: number) => {
+    const { outerLength, innerLength } = this.scrollBarY;
+    this.scrollBarY.offset = (scrollDistance / (maxScrollDistance || Infinity)) * (outerLength - innerLength);
+  }
 
   private initEvents() {
-    this.table.canvas.addEventListener('wheel', this.onWheel, { passive: false })
-  }
-
-  /** 鼠标滚轮 */
-  private onWheel = (e: WheelEvent) => {
-    e.preventDefault();
-    const { deltaX, deltaY } = e;
-    // 判断是横向滚动还是纵向滚动
-    const isVertical = Math.abs(deltaY) > Math.abs(deltaX);
-    const { maxScrollDistance, scrollDistance } = this.scrollBarY;
-
-    if (isVertical) {
-      /** 滚到底了 */
-      if (deltaY > 0 && scrollDistance >= maxScrollDistance) {
-        return
-      }
-      /** 到顶了 */
-      if (deltaY < 0 && scrollDistance <= 0) {
-        return
-      }
-      let scrollY = scrollDistance + deltaY;
-      scrollY = scrollY < 0 ? 0 : (scrollY > maxScrollDistance ? maxScrollDistance : scrollY);
-      this.scrollBarY.scrollDistance = scrollY;
-      this.table.scrollY = scrollY;
-      this.table.draw();
-    }
   }
 }

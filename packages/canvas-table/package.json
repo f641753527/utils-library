@@ -31,7 +31,7 @@
   "bugs": {
     "url": "https://github.com/f641753527/utils-library/issues"
   },
-  "homepage": "https://github.com/f641753527/utils-library#readme",
+  "homepage": "https://github.com/f641753527/utils-library/blob/master/packages/canvas-table/README.md",
   "devDependencies": {
     "mini-css-extract-plugin": "^2.9.0",
     "babel-loader": "^9.1.3"

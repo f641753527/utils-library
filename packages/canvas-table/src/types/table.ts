@@ -20,7 +20,13 @@ export interface ITableAttrs {
   headerHight?: number;
 }
 
-/** canvas-table 构造器 */
+/** canvas-table wrapper 构造器 */
 export interface TableWrapperConstructor extends ITableAttrs {
   el: string;
+}
+
+export type onTableWheelFn =  (scrollDistance: number, maxScrollDistance: number) => void;
+/** canvas-table 构造器 */
+export interface TableConstructor extends ITableAttrs {
+  onWheel?: onTableWheelFn;
 }

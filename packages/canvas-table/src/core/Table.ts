@@ -1,4 +1,4 @@
-import { ITableAttrs, IColumnProps, IAnyStructure, POSITION } from '../types'
+import { TableConstructor, IColumnProps, IAnyStructure, POSITION, onTableWheelFn } from '../types'
 import { style } from './const'
 
 import Drawer from './Drawer'
@@ -19,26 +19,36 @@ export default class CanvasTable extends Drawer {
   private _rowHeight: number;
 
   private _scrollY: number = 0;
+  private _maxScrollY: number = 0;
   private startIndex: number = 0;
   private endIndex: number = 0;
 
-  constructor(tableAttrs: ITableAttrs) {
+  private onCanvasWheel?: onTableWheelFn;
+
+  constructor(config: TableConstructor) {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext("2d") as CanvasRenderingContext2D;
     super(context);
 
-    const { data, columns, rowHeight, headerHight } = tableAttrs;
-    let { height } = tableAttrs;
+    const { data, columns, rowHeight, headerHight, onWheel } = config;
+    let { height } = config;
 
     this._canvas = canvas;
 
-    height = Math.min(height as number, data.length * (rowHeight as number));
+    /** 所有数据渲染真实高度 */
+    const domTotalHeight = data.length * (rowHeight as number);
+    height = Math.min(height as number, domTotalHeight);
 
     this.columns = columns;
     this._sourceData = data;
     this.height = (height as number);
     this._headerHight = (headerHight as number)
     this._rowHeight = rowHeight as number;
+    this._maxScrollY = Math.max(domTotalHeight - height, 0);
+
+    if (onWheel) {
+      this.onCanvasWheel = onWheel;
+    }
   }
 
   get canvas() {
@@ -67,10 +77,14 @@ export default class CanvasTable extends Drawer {
   get headerHight() {
     return this._headerHight;
   }
+  get maxScrollY() {
+    return this._maxScrollY;
+  }
 
   init() {
     this.initColumnsWidth();
     this.setCanvasSize();
+    this.initEvents()
   }
 
   /** 设置单元格宽度 */
@@ -241,6 +255,43 @@ export default class CanvasTable extends Drawer {
         x += col.width as number;
       })
     })
+  }
+
+  private initEvents = () => {
+    this.canvas.addEventListener('wheel', this.onWheel, { passive: false });
+
+    window.onbeforeunload = () => {
+      this.canvas.removeEventListener('wheel', this.onWheel);
+    }
+  }
+
+  /** 鼠标滚轮 */
+  private onWheel = (e: WheelEvent) => {
+    e.preventDefault();
+    const { deltaX, deltaY } = e;
+    // 判断是横向滚动还是纵向滚动
+    const isVertical = Math.abs(deltaY) > Math.abs(deltaX);
+    
+    const { scrollY, maxScrollY } = this;
+
+    if (isVertical) {
+      /** 滚到底了 */
+      if (deltaY > 0 && scrollY >= maxScrollY) {
+        return
+      }
+      /** 到顶了 */
+      if (deltaY < 0 && scrollY <= 0) {
+        return
+      }
+      let currentScrollY = scrollY + deltaY;
+      currentScrollY = currentScrollY < 0 ? 0 : (currentScrollY > maxScrollY ? maxScrollY : currentScrollY);
+      this.scrollY = currentScrollY;
+      this.draw();
+      const onCanvasWheel = this.onCanvasWheel;
+      if (onCanvasWheel && typeof onCanvasWheel === 'function') {
+        onCanvasWheel(currentScrollY, this.maxScrollY);
+      }
+    }
   }
 
 }
