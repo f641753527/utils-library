@@ -1,4 +1,4 @@
-import { TableWrapperConstructor, ITableAttrs, EnumScrollBarDirection } from '../types';
+import { TableWrapperConstructor, EnumScrollBarDirection, IAnyStructure } from '../types';
 import Table from './Table';
 import ScrollBar from './ScrollBar';
 import { defaultTableAttrs } from './const';
@@ -71,8 +71,8 @@ export default class CanvasTableWrapper {
 
   private initScrollBarY() {
     const { headerHight, maxScrollY } = this.table;
+    this.scrollBarY.scrollBarBox.style.display = maxScrollY <= 0 ? 'none' : 'block';
     if (maxScrollY <= 0) {
-      this.scrollBarY.scrollBarBox.style.display = 'none';
       return
     }
     /** tBody总高 */
@@ -99,5 +99,12 @@ export default class CanvasTableWrapper {
   }
 
   private initEvents() {
+  }
+
+  public setData(data: IAnyStructure[]) {
+    this.table.setState(data);
+    this.table.draw();
+    this.scrollBarY.offset = 0;
+    this.initScrollBarY();
   }
 }

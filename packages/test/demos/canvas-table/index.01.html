@@ -23,21 +23,33 @@
       { label: "操作", key: "options", minWidth: 120 },
     ]
 
-    const tableData = new Array(1).fill(null).map((v, i) => ({
-      id: ~~(Math.random() * 999999999),
-      index: i + 1,
-      name: '你好啊',
-      age: ~~(Math.random() * 99),
-      school: '五道口职业技术学院',
-      source: ~~(Math.random() * 150),
-    }))
+    let tableData = [];
 
     const instance = new Table({
       el: '#app',
       data: tableData,
       columns,
-      height: 600,
+      height: 360,
     })
+
+    getData().then(res => {
+      tableData = res;
+      instance.setData(res);
+    })
+
+    function getData () {
+      return new Promise(resolve => setTimeout(() => {
+        const data = new Array(200).fill(null).map((v, i) => ({
+          id: ~~(Math.random() * 999999999),
+          index: i + 1,
+          name: '你好啊',
+          age: ~~(Math.random() * 99),
+          school: '五道口职业技术学院',
+          source: ~~(Math.random() * 150),
+        }))
+        resolve(data);
+      }, 200));
+    }
   </script>
 </body>
 </html>

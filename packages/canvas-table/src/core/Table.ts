@@ -7,16 +7,18 @@ export default class CanvasTable extends Drawer {
   private _canvas: HTMLCanvasElement;
   private _clientWidth: number = 0;
 
-  private columns: IColumnProps[];
-  private _sourceData: IAnyStructure[];
+  private columns: IColumnProps[] = [];
+  private _sourceData: IAnyStructure[] = [];
   /** 当前展示数据 */
   private tableData: IAnyStructure[] = [];
-  /** canvas body 高度 */
-  private height: number;
+  /** 初始传入高度 */
+  private initialHeight: number;
+  /** canvas body 实际高度 */
+  private height: number = 0;
   /** canvas 总宽度 */
   private width: number = 0;
-  private _headerHight: number;
-  private _rowHeight: number;
+  private _headerHight: number = 0;
+  private _rowHeight: number = 0;
 
   private _scrollY: number = 0;
   private _maxScrollY: number = 0;
@@ -30,21 +32,15 @@ export default class CanvasTable extends Drawer {
     const context = canvas.getContext("2d") as CanvasRenderingContext2D;
     super(context);
 
-    const { data, columns, rowHeight, headerHight, onWheel } = config;
-    let { height } = config;
-
+    const { data, columns, height, rowHeight, headerHight, onWheel } = config;
     this._canvas = canvas;
-
-    /** 所有数据渲染真实高度 */
-    const domTotalHeight = data.length * (rowHeight as number);
-    height = Math.min(height as number, domTotalHeight);
-
     this.columns = columns;
     this._sourceData = data;
-    this.height = (height as number);
+    this.initialHeight = height as number;
     this._headerHight = (headerHight as number)
     this._rowHeight = rowHeight as number;
-    this._maxScrollY = Math.max(domTotalHeight - height, 0);
+
+    this.setState(data);
 
     if (onWheel) {
       this.onCanvasWheel = onWheel;
@@ -71,6 +67,9 @@ export default class CanvasTable extends Drawer {
   get sourceData() {
     return this._sourceData;
   }
+  set sourceData(data: IAnyStructure[]) {
+    this._sourceData = data;
+  }
   get rowHeight () {
     return this._rowHeight;
   }
@@ -85,6 +84,19 @@ export default class CanvasTable extends Drawer {
     this.initColumnsWidth();
     this.setCanvasSize();
     this.initEvents()
+  }
+
+  /** 设置初始状态  */
+  public setState(data: IAnyStructure[]) {
+    let { initialHeight: height, rowHeight } = this;
+    /** 所有数据渲染真实高度 */
+    const domTotalHeight = data.length * (rowHeight as number);
+    height = Math.min(height as number, domTotalHeight);
+    this._sourceData = data;
+    this.height = (height as number);
+    this._maxScrollY = Math.max(domTotalHeight - height, 0);
+    this.scrollY = 0;
+    this.setCanvasSize();
   }
 
   /** 设置单元格宽度 */
