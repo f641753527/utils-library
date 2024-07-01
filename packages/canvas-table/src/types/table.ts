@@ -6,6 +6,8 @@ export interface IColumnProps {
   key: string;
   width?: number;
   minWidth?: number;
+  /** 实际渲染宽度 */
+  _realWidth?: number;
   /** 左侧或右侧固定 */
   fixed?: 'left' | 'right';
 }

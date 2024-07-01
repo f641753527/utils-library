@@ -9,7 +9,7 @@
       margin: 0;
       padding: 0;
     }
-    #app{
+    body{
       padding: 12px;
     }
   </style>
@@ -24,7 +24,7 @@
     const Table = CanvasTable.default;
 
     const columns = [
-      { label: "序号", key: "index", minWidth: 480, fixed: 'left' },
+      { label: "序号", key: "index", width: 40 },
       { label: "姓名", key: "name", width: 120 },
       { label: "年龄", key: "age", width: 120 },
       { label: "学校", key: "school", width: 120 },

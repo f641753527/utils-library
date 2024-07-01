@@ -6,6 +6,7 @@ import { defaultTableAttrs } from './const';
 export default class CanvasTableWrapper {
   private querySelector: string;
   private el: HTMLElement | null;
+  private tableWrapper: HTMLElement | null = null;
   private table: Table;
   private scrollBarY: ScrollBar;
 
@@ -54,6 +55,7 @@ export default class CanvasTableWrapper {
 
     console.log('el节点已挂载, 宽度: ', el.clientWidth);
     const tableWrapperEl = document.createElement('div');
+    this.tableWrapper = tableWrapperEl;
     tableWrapperEl.style.position = 'relative';
     tableWrapperEl.style.fontSize = '0';
     table.clientWidth = el.clientWidth;
@@ -62,8 +64,8 @@ export default class CanvasTableWrapper {
     el.appendChild(tableWrapperEl);
     /** 初始化表格配置 */
     this.init();
-    tableWrapperEl.style.width = table.canvas.width + 'px';
-    el.style.width = table.canvas.width + 'px';
+    el.style.padding = '0';
+    this.setWrapperSize();
   }
 
   private init() {
@@ -71,6 +73,11 @@ export default class CanvasTableWrapper {
     this.table.draw();
     this.initScrollBarY();
     this.initEvents();
+  }
+
+  private setWrapperSize() {
+    (this.el as HTMLElement).style.width = this.table.canvas.width + 'px';
+    (this.tableWrapper as HTMLElement).style.width = this.table.canvas.width + 'px';
   }
 
   private initScrollBarY() {
@@ -103,6 +110,22 @@ export default class CanvasTableWrapper {
   }
 
   private initEvents() {
+    window.addEventListener('resize', this.onResize);
+
+    window.onbeforeunload = () => {
+      window.removeEventListener('wheel', this.onResize);
+    }
+  }
+
+  private onResize = () => {
+    const el = document.createElement('div');
+    document.body.appendChild(el);
+    this.table.clientWidth = el.clientWidth;
+    this.table.init();
+    this.table.draw();
+
+    el.parentElement?.removeChild(el);
+    this.setWrapperSize();
   }
 
   public setData(data: IAnyStructure[]) {

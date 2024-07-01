@@ -45,6 +45,8 @@ export default class CanvasTable extends Drawer {
     if (onWheel) {
       this.onCanvasWheel = onWheel;
     }
+
+    this.initEvents();
   }
 
   get canvas() {
@@ -83,7 +85,6 @@ export default class CanvasTable extends Drawer {
   init() {
     this.initColumnsWidth();
     this.setCanvasSize();
-    this.initEvents()
   }
 
   /** 设置初始状态  */
@@ -117,19 +118,19 @@ export default class CanvasTable extends Drawer {
 
     /** 设置列宽度 优先取width 否则取minWidth */
     this.columns.forEach((col, i) => {
-      col.width = col.width || Math.max(
+      col._realWidth = col.width || Math.max(
         col.minWidth || 0,
         ~~((col.minWidth as number) / (flexWidth || Infinity) * screenLeftWidth)
       );
       if (i === this.columns.length - 1 && screenLeftWidth > 0 && flexWidth) {
-        col.width = Math.max(
+        col._realWidth = Math.max(
           (this._clientWidth - canvasWidth),
-          col.width
+          col._realWidth
         );
       }
-      canvasWidth += col.width;
+      canvasWidth += col._realWidth;
       if (col.fixed === 'left' || col.fixed === 'right') {
-        fixedWidth += col.width;
+        fixedWidth += col._realWidth;
       }
     })
     this.width = Math.min(this.clientWidth, canvasWidth);
@@ -156,6 +157,7 @@ export default class CanvasTable extends Drawer {
     // 绘制表头
     this.drawHeader();
   }
+
   /** 清除画布 */
   clearCanvans() {
     // 当宽高重新设置时，就会重新绘制
@@ -201,7 +203,7 @@ export default class CanvasTable extends Drawer {
         label: col.label,
         x,
         y: 0,
-        width: col.width as number,
+        width: col._realWidth as number,
         height: headerHight,
         style: headerStyle,
       });
@@ -209,13 +211,13 @@ export default class CanvasTable extends Drawer {
         this.drawCellBorder({
           x,
           y: 0,
-          width: col.width as number,
+          width: col._realWidth as number,
           height: headerHight,
           position,
           style: headerStyle,
         })
       });
-      x += col.width as number;
+      x += col._realWidth as number;
     })
   }
   /** 绘制body */
@@ -241,14 +243,14 @@ export default class CanvasTable extends Drawer {
           label: row[col.key],
           x,
           y,
-          width: col.width as number,
+          width: col._realWidth as number,
           height: rowHeight,
           style,
         });
         this.drawCellBorder({
           x,
           y,
-          width: col.width as number,
+          width: col._realWidth as number,
           height: rowHeight,
           position: POSITION.RIGHT,
           style: style,
@@ -256,12 +258,12 @@ export default class CanvasTable extends Drawer {
         this.drawCellBorder({
           x,
           y,
-          width: col.width as number,
+          width: col._realWidth as number,
           height: rowHeight,
           position: POSITION.BOTTOM,
           style: style,
         })
-        x += col.width as number;
+        x += col._realWidth as number;
       })
     })
   }
