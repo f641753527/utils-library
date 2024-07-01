@@ -101,7 +101,7 @@ export default class CanvasTableWrapper {
   private onScrollBarYDrag = (offset: number, maxOffset: number) => {
     const { maxScrollY } = this.table;
     this.table.scrollY = maxScrollY * (offset / (maxOffset || Infinity));
-    this.table.draw();
+    this.table.throttleDraw();
   }
 
   private onCanvasWheel = (scrollDistance: number, maxScrollDistance: number) => {

@@ -1,5 +1,6 @@
-import { TableConstructor, IColumnProps, IAnyStructure, POSITION, onTableWheelFn } from '../types'
-import { style } from './const'
+import { TableConstructor, IColumnProps, IAnyStructure, POSITION, onTableWheelFn } from '../types';
+import { style } from './const';
+import { throttle } from '../utils';
 
 import Drawer from './Drawer'
 
@@ -144,7 +145,7 @@ export default class CanvasTable extends Drawer {
     this._canvas.width = this.width;
   }
   /** 设置当前可视区展示的数据 */
-  draw() {
+  draw = () => {
     /** 可视区展示的条数 */
     const limit = Math.ceil(this.height / this.rowHeight);
     this.startIndex = ~~(this._scrollY / this.rowHeight);
@@ -157,6 +158,8 @@ export default class CanvasTable extends Drawer {
     // 绘制表头
     this.drawHeader();
   }
+  
+  throttleDraw = throttle(this.draw, 60);
 
   /** 清除画布 */
   clearCanvans() {
@@ -297,7 +300,7 @@ export default class CanvasTable extends Drawer {
       let currentScrollY = scrollY + deltaY;
       currentScrollY = currentScrollY < 0 ? 0 : (currentScrollY > maxScrollY ? maxScrollY : currentScrollY);
       this.scrollY = currentScrollY;
-      this.draw();
+      this.throttleDraw();
       const onCanvasWheel = this.onCanvasWheel;
       if (onCanvasWheel && typeof onCanvasWheel === 'function') {
         onCanvasWheel(currentScrollY, this.maxScrollY);
