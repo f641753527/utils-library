@@ -119,21 +119,24 @@ export default class CanvasTable extends Drawer {
     this.columns.forEach((col, i) => {
       col.width = col.width || Math.max(
         col.minWidth || 0,
-        (col.minWidth as number) / (flexWidth || Infinity) * screenLeftWidth
+        ~~((col.minWidth as number) / (flexWidth || Infinity) * screenLeftWidth)
       );
-      if (i === this.columns.length - 1 && screenLeftWidth && flexWidth) {
-        col.width = this._clientWidth - canvasWidth;
+      if (i === this.columns.length - 1 && screenLeftWidth > 0 && flexWidth) {
+        col.width = Math.max(
+          (this._clientWidth - canvasWidth),
+          col.width
+        );
       }
       canvasWidth += col.width;
       if (col.fixed === 'left' || col.fixed === 'right') {
         fixedWidth += col.width;
       }
     })
-    this.width = Math.max(
-      Math.min(this.clientWidth, canvasWidth),
-      /** canvas width 不能小于固定列宽度 */
-      fixedWidth + 200
-    );
+    this.width = Math.min(this.clientWidth, canvasWidth);
+    /** canvas width 不能小于固定列宽度 */
+    if (fixedWidth > 0 && this.width - fixedWidth < 200) {
+      this.width = fixedWidth + 200;
+    }
   }
   setCanvasSize() {
     this._canvas.height = this.headerHight + this.height;
@@ -181,7 +184,7 @@ export default class CanvasTable extends Drawer {
       style: headerStyle,
     });
 
-    [POSITION.LEFT, POSITION.TOP].forEach(position => {
+    [POSITION.LEFT, POSITION.TOP, POSITION.RIGHT].forEach(position => {
       this.drawCellBorder({
         x: 0,
         y: 0,
@@ -219,21 +222,15 @@ export default class CanvasTable extends Drawer {
   drawBody() {
     const { canvas, height, headerHight, rowHeight, columns, tableData } = this;
 
-    this.drawCellBorder({
-      x: 0,
-      y: headerHight,
-      width: canvas.width,
-      height: height,
-      position: POSITION.BOTTOM,
-      style: style,
-    })
-    this.drawCellBorder({
-      x: 0,
-      y: headerHight,
-      width: canvas.width,
-      height: height,
-      position: POSITION.LEFT,
-      style: style,
+    [POSITION.LEFT, POSITION.BOTTOM, POSITION.RIGHT].forEach(position => {
+      this.drawCellBorder({
+        x: 0,
+        y: headerHight,
+        width: canvas.width,
+        height,
+        position,
+        style: style,
+      })
     })
 
     tableData.forEach((row, rowIndex) => {

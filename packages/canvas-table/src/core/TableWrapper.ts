@@ -38,7 +38,9 @@ export default class CanvasTableWrapper {
     if (!this.el) {
       document.addEventListener('DOMContentLoaded', () => {
         this.el = document.querySelector(this.querySelector);
-        this.el = this.el || document.body;
+        if (!this.el) {
+          throw new Error('找不到挂在节点')
+        }
         this.createTableEl();
       })
     } else {
@@ -60,6 +62,8 @@ export default class CanvasTableWrapper {
     el.appendChild(tableWrapperEl);
     /** 初始化表格配置 */
     this.init();
+    tableWrapperEl.style.width = table.canvas.width + 'px';
+    el.style.width = table.canvas.width + 'px';
   }
 
   private init() {
@@ -70,13 +74,13 @@ export default class CanvasTableWrapper {
   }
 
   private initScrollBarY() {
-    const { headerHight, maxScrollY } = this.table;
+    const { headerHight, maxScrollY, canvas } = this.table;
     this.scrollBarY.scrollBarBox.style.display = maxScrollY <= 0 ? 'none' : 'block';
     if (maxScrollY <= 0) {
       return
     }
     /** tBody总高 */
-    const height = this.table.canvas.height - headerHight;
+    const height = canvas.height - headerHight;
 
     /** 滚动条内部块占总高度占比 */
     const scrollBarRate = height / ((height + maxScrollY) || Infinity);

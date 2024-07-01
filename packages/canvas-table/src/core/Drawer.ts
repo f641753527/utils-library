@@ -42,8 +42,8 @@ export default class Drawer {
         ctx.lineTo(x, y + height - 0.5);
         break;
       case POSITION.RIGHT:
-        ctx.moveTo(x + width, y + 0.5);
-        ctx.lineTo(x + width, y + height - 0.5);
+        ctx.moveTo(x + width - 0.5, y + 0.5);
+        ctx.lineTo(x + width - 0.5, y + height - 0.5);
         break;
       default:
         break;

@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Canvas Table</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    #app{
+      padding: 12px;
+    }
+  </style>
   <link rel="stylesheet" href="../../node_modules/@phoenix_fan/canvas-table/lib/index.css">
   <script src="../../node_modules/@phoenix_fan/canvas-table/lib/index.umd.js" ></script>
 </head>
@@ -15,12 +24,12 @@
     const Table = CanvasTable.default;
 
     const columns = [
-      { label: "序号", key: "index", width: 60 },
+      { label: "序号", key: "index", minWidth: 480, fixed: 'left' },
       { label: "姓名", key: "name", width: 120 },
       { label: "年龄", key: "age", width: 120 },
       { label: "学校", key: "school", width: 120 },
       { label: "分数分数分数分数分数分数分数分数", key: "source", width: 120 },
-      { label: "操作", key: "options", minWidth: 120 },
+      { label: "操作", key: "options", width: 120 },
     ]
 
     let tableData = [];
@@ -39,7 +48,7 @@
 
     function getData () {
       return new Promise(resolve => setTimeout(() => {
-        const data = new Array(2000).fill(null).map((v, i) => ({
+        const data = new Array(200).fill(null).map((v, i) => ({
           id: ~~(Math.random() * 999999999),
           index: i + 1,
           name: '你好啊',
