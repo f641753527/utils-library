@@ -39,7 +39,7 @@
 
     function getData () {
       return new Promise(resolve => setTimeout(() => {
-        const data = new Array(200).fill(null).map((v, i) => ({
+        const data = new Array(2000).fill(null).map((v, i) => ({
           id: ~~(Math.random() * 999999999),
           index: i + 1,
           name: '你好啊',

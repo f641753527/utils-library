@@ -66,8 +66,12 @@ export default class ScrollBar {
   }
 
   set innerLength (length: number) {
-    this._innerLength = length;
-    this.setSize(this._scrollBarSlider, length);
+    const len = Math.min(
+      Math.max(30, length),
+      this.outerLength
+    ) 
+    this._innerLength = len;
+    this.setSize(this._scrollBarSlider, len);
   }
   get innerLength() {
     return this._innerLength;
