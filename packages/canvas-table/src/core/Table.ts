@@ -226,8 +226,7 @@ export default class CanvasTable extends Drawer {
     const headerStyle = { ...style, ...style.header };
 
     let x = type === 'left' ? 0 : type === 'right' ? (canvas.width - fixedRightWidth) : this.fixedLeftWidth - this.scrollX;
-    let width = type === 'left' ? this.fixedLeftWidth : type === 'right' ? this.fixedRightWidth : this.maxScrollX + this.canvas.width;
-       
+    let width = type === 'left' ? this.fixedLeftWidth : type === 'right' ? this.fixedRightWidth : canvas.width + this.maxScrollX;
     this.clearCell({
       x,
       y: 0,
@@ -278,7 +277,7 @@ export default class CanvasTable extends Drawer {
     this.clearCell({
       x,
       y: headerHight,
-      width: type === 'left' ? this.fixedLeftWidth : type === 'right' ? this.fixedRightWidth : canvas.width - this.fixedLeftWidth - this.fixedRightWidth,
+      width: type === 'left' ? this.fixedLeftWidth : type === 'right' ? this.fixedRightWidth : canvas.width + this.maxScrollX,
       height: height,
     });
 

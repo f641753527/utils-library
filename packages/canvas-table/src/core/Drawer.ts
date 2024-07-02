@@ -71,7 +71,7 @@ export default class Drawer {
     const { canvasCtx: ctx } = this;
     const { x, y, width, height, style } = config;
     ctx.fillStyle = style.backgroundColor as string;
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(x, y, width, height);
   }
 
   // 擦除单元格内容
