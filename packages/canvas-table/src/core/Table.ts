@@ -188,10 +188,26 @@ export default class CanvasTable extends Drawer {
     this.tableData = this.sourceData.slice(this.startIndex, this.endIndex + 1);
     // 清除画布
     this.clearCanvans();
-    // 绘制body
+
+    /** 绘制中间位置 */
     this.drawBody();
-    // 绘制表头
     this.drawHeader();
+    /** 绘制左侧 */
+    this.drawBody('left');
+    this.drawHeader('left');
+    /** 绘制右侧 */
+    this.drawBody('right');
+    this.drawHeader('right');
+    [POSITION.LEFT, POSITION.TOP, POSITION.RIGHT, POSITION.BOTTOM].forEach(position => {
+      this.drawCellBorder({
+        x: 0,
+        y: 0,
+        width: this.canvas.width,
+        height: this.canvas.height,
+        position,
+        style: style,
+      })
+    });
   }
   
   throttleDraw = throttle(this.draw, 60);
@@ -204,38 +220,34 @@ export default class CanvasTable extends Drawer {
     canvas.height = canvas.height;
   }
   /** 绘制表头 */
-  drawHeader() {
-    const { canvas, headerHight, columns } = this;
+  drawHeader(type?: 'left' | 'right') {
+    const { fixedRightWidth, canvas, headerHight, columns: _columns } = this;
 
     const headerStyle = { ...style, ...style.header };
 
+    let x = type === 'left' ? 0 : type === 'right' ? (canvas.width - fixedRightWidth) : this.fixedLeftWidth - this.scrollX;
+    let width = type === 'left' ? this.fixedLeftWidth : type === 'right' ? this.fixedRightWidth : this.maxScrollX + this.canvas.width;
+       
     this.clearCell({
-      x: 0,y: 0,
-      width: canvas.width,
-      height: headerHight
+      x,
+      y: 0,
+      width,
+      height: headerHight,
+    });
+
+    const columns = _columns.filter(col => {
+      return type ? col.fixed === type : (col.fixed !== 'left' && col.fixed !== 'right')
     });
 
     /** 背景色 */
     this.fillRect({
-      x: 0,
+      x,
       y: 0, 
-      width: this.width,
-      height: this.headerHight,
+      width,
+      height: headerHight,
       style: headerStyle,
     });
 
-    [POSITION.LEFT, POSITION.TOP, POSITION.RIGHT].forEach(position => {
-      this.drawCellBorder({
-        x: 0,
-        y: 0,
-        width: canvas.width,
-        height: headerHight,
-        position,
-        style: headerStyle,
-      })
-    });
-
-    let x = this.fixedLeftWidth - this.scrollX;
     columns.forEach((col, i) => {
       this.drawCellText({
         label: col.label,
@@ -256,25 +268,26 @@ export default class CanvasTable extends Drawer {
         })
       });
       x += col._realWidth as number;
-    })
+    });
   }
   /** 绘制body */
-  drawBody() {
-    const { canvas, height, headerHight, rowHeight, columns, tableData } = this;
+  drawBody(type?: 'left' | 'right') {
+    const { canvas, fixedRightWidth, height, headerHight, rowHeight, columns: _columns, tableData } = this;
 
-    [POSITION.LEFT, POSITION.BOTTOM, POSITION.RIGHT].forEach(position => {
-      this.drawCellBorder({
-        x: 0,
-        y: headerHight,
-        width: canvas.width,
-        height,
-        position,
-        style: style,
-      })
-    })
+    let x = type === 'left' ? 0 : type === 'right' ? (canvas.width - fixedRightWidth) : this.fixedLeftWidth - this.scrollX;
+    this.clearCell({
+      x,
+      y: headerHight,
+      width: type === 'left' ? this.fixedLeftWidth : type === 'right' ? this.fixedRightWidth : canvas.width - this.fixedLeftWidth - this.fixedRightWidth,
+      height: height,
+    });
+
+    const columns = _columns.filter(col => {
+      return type ? col.fixed === type : (col.fixed !== 'left' && col.fixed !== 'right')
+    });
 
     tableData.forEach((row, rowIndex) => {
-      let x = this.fixedLeftWidth - this.scrollX;
+      let x = type === 'left' ? 0 : type === 'right' ? (canvas.width - fixedRightWidth) : this.fixedLeftWidth - this.scrollX;
       let y = headerHight + rowHeight * rowIndex - (this.scrollY % rowHeight);
       columns.forEach(col => {
         this.drawCellText({
@@ -303,7 +316,7 @@ export default class CanvasTable extends Drawer {
         })
         x += col._realWidth as number;
       })
-    })
+    });
   }
 
   private initEvents = () => {
