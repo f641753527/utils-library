@@ -21,8 +21,15 @@ export default class CanvasTable extends Drawer {
   private _headerHight: number = 0;
   private _rowHeight: number = 0;
 
+  /** 左侧fixed列总宽度 */
+  private _fixedLeftWidth: number = 0;
+  /** 右侧fixed列总宽度 */
+  private _fixedRightWidth: number = 0;
+  private _scrollX: number = 0;
+  private _maxScrollX: number = 0;
   private _scrollY: number = 0;
   private _maxScrollY: number = 0;
+
   private startIndex: number = 0;
   private endIndex: number = 0;
 
@@ -67,6 +74,12 @@ export default class CanvasTable extends Drawer {
   get scrollY() {
     return this._scrollY;
   }
+  set scrollX (scrollX: number) {
+    this._scrollX = scrollX;
+  }
+  get scrollX() {
+    return this._scrollX;
+  }
   get sourceData() {
     return this._sourceData;
   }
@@ -81,6 +94,24 @@ export default class CanvasTable extends Drawer {
   }
   get maxScrollY() {
     return this._maxScrollY;
+  }
+  set maxScrollX(maxScrollX: number) {
+    this._maxScrollX = maxScrollX;
+  }
+  get maxScrollX() {
+    return this._maxScrollX;
+  }
+  set fixedLeftWidth(width: number) {
+    this._fixedLeftWidth = width;
+  }
+  get fixedLeftWidth() {
+    return this._fixedLeftWidth;
+  }
+  set fixedRightWidth(width: number) {
+    this._fixedRightWidth = width;
+  }
+  get fixedRightWidth() {
+    return this._fixedRightWidth;
   }
 
   init() {
@@ -107,8 +138,6 @@ export default class CanvasTable extends Drawer {
     let staticWidth = 0;
     /** 伸缩列宽度汇总 */
     let flexWidth = 0;
-    /** 固定列列宽列宽(设置了fixed的列宽求和) */
-    let fixedWidth = 0;
     let canvasWidth = 0;
     this.columns.forEach(col => {
       staticWidth += col.width || 0;
@@ -130,15 +159,21 @@ export default class CanvasTable extends Drawer {
         );
       }
       canvasWidth += col._realWidth;
-      if (col.fixed === 'left' || col.fixed === 'right') {
-        fixedWidth += col._realWidth;
+      if (col.fixed === 'left') {
+        this.fixedLeftWidth += col._realWidth;
+      }
+      if (col.fixed === 'right') {
+        this.fixedRightWidth += col._realWidth;
       }
     })
     this.width = Math.min(this.clientWidth, canvasWidth);
     /** canvas width 不能小于固定列宽度 */
+    const fixedWidth = this.fixedLeftWidth + this.fixedRightWidth;
     if (fixedWidth > 0 && this.width - fixedWidth < 200) {
       this.width = fixedWidth + 200;
     }
+    /** 最大滚动宽度=总宽度-canvas宽度 */
+    this._maxScrollX = canvasWidth - this.width;
   }
   setCanvasSize() {
     this._canvas.height = this.headerHight + this.height;
@@ -200,7 +235,7 @@ export default class CanvasTable extends Drawer {
       })
     });
 
-    let x = 0
+    let x = this.fixedLeftWidth - this.scrollX;
     columns.forEach((col, i) => {
       this.drawCellText({
         label: col.label,
@@ -239,7 +274,7 @@ export default class CanvasTable extends Drawer {
     })
 
     tableData.forEach((row, rowIndex) => {
-      let x = 0;
+      let x = this.fixedLeftWidth - this.scrollX;
       let y = headerHight + rowHeight * rowIndex - (this.scrollY % rowHeight);
       columns.forEach(col => {
         this.drawCellText({

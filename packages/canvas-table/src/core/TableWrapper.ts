@@ -9,6 +9,7 @@ export default class CanvasTableWrapper {
   private tableWrapper: HTMLElement | null = null;
   private table: Table;
   private scrollBarY: ScrollBar;
+  private scrollBarX: ScrollBar;
 
   constructor(options: TableWrapperConstructor) {
     let { el, ...tableAttrs } = options;
@@ -22,6 +23,11 @@ export default class CanvasTableWrapper {
     this.scrollBarY = new ScrollBar({
       direction: EnumScrollBarDirection.VERTICAL,
       onDrag: this.onScrollBarYDrag,
+    })
+    /***/
+    this.scrollBarX = new ScrollBar({
+      direction: EnumScrollBarDirection.HORIZONTAL,
+      onDrag: this.onScrollBarXDrag,
     })
 
     /** 表格实例 */
@@ -50,7 +56,7 @@ export default class CanvasTableWrapper {
   }
 
   private createTableEl() {
-    const { scrollBarY, table } = this;
+    const { scrollBarX, scrollBarY, table } = this;
     const el = this.el as HTMLElement;
 
     console.log('el节点已挂载, 宽度: ', el.clientWidth);
@@ -61,6 +67,7 @@ export default class CanvasTableWrapper {
     table.clientWidth = el.clientWidth;
     tableWrapperEl.appendChild(table.canvas);
     tableWrapperEl.appendChild(scrollBarY.scrollBarBox);
+    tableWrapperEl.appendChild(scrollBarX.scrollBarBox);
     el.appendChild(tableWrapperEl);
     /** 初始化表格配置 */
     this.init();
@@ -72,6 +79,7 @@ export default class CanvasTableWrapper {
     this.table.init();
     this.table.draw();
     this.initScrollBarY();
+    this.initScrollBarX();
     this.initEvents();
   }
 
@@ -98,9 +106,33 @@ export default class CanvasTableWrapper {
     this.scrollBarY.innerLength = scrollBarHeight;
   }
 
+  private initScrollBarX() {
+    const { maxScrollX, canvas, fixedLeftWidth, fixedRightWidth } = this.table;
+    this.scrollBarY.scrollBarBox.style.display = maxScrollX <= 0 ? 'none' : 'block';
+    if (maxScrollX <= 0) {
+      return
+    }
+    /** 中间滚动宽度 */
+    const centerWidth = canvas.width - fixedLeftWidth - fixedRightWidth;
+
+    /** 滚动条内部块占总高度占比 */
+    const scrollBarRate = centerWidth / ((centerWidth + maxScrollX) || Infinity);
+    /** 滚动条 内部块高度 */
+    const scrollBarWidth = scrollBarRate * canvas.width;
+
+    this.scrollBarX.outerLength = canvas.width;
+    this.scrollBarX.innerLength = scrollBarWidth;
+  }
+
   private onScrollBarYDrag = (offset: number, maxOffset: number) => {
     const { maxScrollY } = this.table;
     this.table.scrollY = maxScrollY * (offset / (maxOffset || Infinity));
+    this.table.throttleDraw();
+  }
+
+  private onScrollBarXDrag = (offset: number, maxOffset: number) => {
+    const { maxScrollX } = this.table;
+    this.table.scrollX = maxScrollX * (offset / (maxOffset || Infinity));
     this.table.throttleDraw();
   }
 
@@ -126,6 +158,7 @@ export default class CanvasTableWrapper {
 
     el.parentElement?.removeChild(el);
     this.setWrapperSize();
+    this.initScrollBarX();
   }
 
   public setData(data: IAnyStructure[]) {

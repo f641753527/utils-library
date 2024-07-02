@@ -20,4 +20,20 @@
       border-radius: 100px;
     }
   }
+  &-x{
+    left: 0;
+    bottom: 0;
+    height: var(--bar-width);
+    transform: translateY(100%);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    box-sizing: border-box;
+    .canvas-table-scroll-bar--slider{
+      top: 50%;
+      transform: translateY(-50%);
+      height: calc(100% - 4px);
+      background-color: var(--primary-color);
+      border-radius: 100px;
+    }
+  }
 }
