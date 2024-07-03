@@ -16,11 +16,13 @@ export default class CanvasTable extends Drawer {
   /** 初始传入高度 */
   private initialHeight: number;
   /** canvas body 实际高度 */
-  private height: number = 0;
+  private _height: number = 0;
   /** canvas 总宽度 */
   private width: number = 0;
   private _headerHight: number = 0;
   private _rowHeight: number = 0;
+  /** 表头最大深度 */
+  private maxHeaderDepth: number = 1;
 
   /** 左侧fixed列总宽度 */
   private _fixedLeftWidth: number = 0;
@@ -114,6 +116,9 @@ export default class CanvasTable extends Drawer {
   get fixedRightWidth() {
     return this._fixedRightWidth;
   }
+  get height() {
+    return this._height;
+  }
 
   init() {
     this.initColumnsWidth();
@@ -127,7 +132,7 @@ export default class CanvasTable extends Drawer {
     const domTotalHeight = data.length * (rowHeight as number);
     height = Math.min(height as number, domTotalHeight);
     this._sourceData = data;
-    this.height = (height as number);
+    this._height = (height as number);
     this._maxScrollY = Math.max(domTotalHeight - height, 0);
     this.scrollY = 0;
     this.setCanvasSize();
@@ -135,41 +140,56 @@ export default class CanvasTable extends Drawer {
 
   /** 设置单元格宽度 */
   initColumnsWidth() {
+    this.fixedLeftWidth = 0;
+    this.fixedRightWidth = 0;
     /** 固定宽度的列宽汇总 */
     let staticWidth = 0;
     /** 伸缩列宽度汇总 */
     let flexWidth = 0;
     let canvasWidth = 0;
-    this.columns.forEach(col => {
-      staticWidth += col.width || 0;
-      flexWidth += col.minWidth && !col.width ? col.minWidth : 0;
-    })
+    this.maxHeaderDepth = 1;
+    LodashUtils.BFS(this.columns, { callback: (col, depth) => {
+      /** 顶层的width由children计算而来 */
+      this.maxHeaderDepth = Math.max(this.maxHeaderDepth, depth + 1);
+      if (!col.children || !col.children.length) {
+        staticWidth += col.width || 0;
+        flexWidth += col.minWidth && !col.width ? col.minWidth : 0;
+      }
+    }});
     /** 屏幕剩余宽度(可供伸缩列分配的区域 即减去了固定宽度的列之后的剩余空间) */
     const screenLeftWidth = this._clientWidth - staticWidth;
-
-    /** 设置列宽度 优先取width 否则取minWidth */
+    const columnEach = (cols: IColumnProps[], depth = 0) => {
+      for (const col of cols) {
+        col._left = x;
+        col._top = depth * this.headerHight;
+        col._height = (this.maxHeaderDepth - depth) * this.headerHight;
+        if (col.children && col.children.length) {
+          columnEach(col.children, depth + 1);
+        }
+        /** 里层col才需要计算width 有children的col width由children计算 */
+        if (!col.children || !col.children.length) {
+          col._realWidth = col.width || Math.max(
+            col.minWidth || 0,
+            ~~((col.minWidth as number) / (flexWidth || Infinity) * screenLeftWidth)
+          );
+          x += col._realWidth;
+          canvasWidth += col._realWidth;
+        } else {
+          col._realWidth = x - col._left;
+        }
+        if (depth === 0) {
+          if (col.fixed === 'left') {
+            this.fixedLeftWidth += col._realWidth;
+          }
+          if (col.fixed === 'right') {
+            this.fixedRightWidth += col._realWidth;
+          }
+        }
+      }
+    }
     let x = 0;
-    this.columns.forEach((col, i) => {
-      col._left = x;
-      col._realWidth = col.width || Math.max(
-        col.minWidth || 0,
-        ~~((col.minWidth as number) / (flexWidth || Infinity) * screenLeftWidth)
-      );
-      if (i === this.columns.length - 1 && screenLeftWidth > 0 && flexWidth) {
-        col._realWidth = Math.max(
-          (this._clientWidth - canvasWidth),
-          col._realWidth
-        );
-      }
-      canvasWidth += col._realWidth;
-      if (col.fixed === 'left') {
-        this.fixedLeftWidth += col._realWidth;
-      }
-      if (col.fixed === 'right') {
-        this.fixedRightWidth += col._realWidth;
-      }
-      x += col._realWidth;
-    })
+    columnEach(this.columns);
+    /** 设置列宽度 优先取width 否则取minWidth */
     this.width = Math.min(this.clientWidth, canvasWidth);
     /** canvas width 不能小于固定列宽度 */
     const fixedWidth = this.fixedLeftWidth + this.fixedRightWidth;
@@ -180,7 +200,7 @@ export default class CanvasTable extends Drawer {
     this._maxScrollX = canvasWidth - this.width;
   }
   setCanvasSize() {
-    this._canvas.height = this.headerHight + this.height;
+    this._canvas.height = this.headerHight * this.maxHeaderDepth + this.height;
     this._canvas.width = this.width;
   }
   /** 设置当前可视区展示的数据 */
@@ -207,7 +227,7 @@ export default class CanvasTable extends Drawer {
       height: this.canvas.height,
     });
 
-    if (this.maxScrollX > 0 && this.scrollX > 0) {
+    if (this.maxScrollX > 0 && this.scrollX > 0 && this.fixedLeftWidth > 0) {
       this.drawShadow({
         x: 0,
         y: 0,
@@ -227,7 +247,7 @@ export default class CanvasTable extends Drawer {
       width: this.fixedRightWidth,
       height: this.canvas.height,
     });
-    if (this.maxScrollX > 0 && this.scrollX < this.maxScrollX) {
+    if (this.maxScrollX > 0 && this.scrollX < this.maxScrollX && this.fixedRightWidth) {
       this.drawShadow({
         x: this.canvas.width - this.fixedRightWidth,
         y: 0,
@@ -270,37 +290,46 @@ export default class CanvasTable extends Drawer {
     const columns = _columns.filter(col => {
       return type ? col.fixed === type : (col.fixed !== 'left' && col.fixed !== 'right')
     });
-    columns.forEach((col, i) => {
-      const x = TableUtils.getColumnActualLeft(col, this, type);
-      const width = col._realWidth as number;
-      /** 背景色 */
-      this.fillRect({
-        x,
-        y: 0,
-        width,
-        height: headerHight,
-        style: headerStyle,
-      });
-      this.drawCellText({
-        label: col.label,
-        x,
-        y: 0,
-        width,
-        height: headerHight,
-        style: headerStyle,
-      });
-      const positions = [POSITION.RIGHT, POSITION.BOTTOM];
-      positions.forEach(position => {
-        this.drawCellBorder({
+    const eachColumns = (cols: IColumnProps[]) => {
+      for (const col of cols) {
+        const x = TableUtils.getColumnActualLeft(col, this, type);
+        const width = col._realWidth as number;
+        const y = (col._top as number);
+        const height = (col._height as number);
+        const hasChildren = col.children && col.children.length;
+        /** 背景色 */
+        this.fillRect({
           x,
-          y: 0,
+          y,
           width,
-          height: headerHight,
-          position,
+          height,
           style: headerStyle,
-        })
-      });
-    });
+        });
+        this.drawCellText({
+          label: col.label,
+          x,
+          y,
+          width,
+          height: hasChildren ? headerHight : height,
+          style: headerStyle,
+        });
+        const positions = [POSITION.RIGHT, POSITION.BOTTOM];
+        positions.forEach(position => {
+          this.drawCellBorder({
+            x,
+            y,
+            width,
+            height: hasChildren ? headerHight : height,
+            position,
+            style: headerStyle,
+          })
+        });
+        if (col.children && col.children.length) {
+          eachColumns(col.children);
+        }
+      }
+    }
+    eachColumns(columns);
   }
   /** 绘制body */
   drawBody(type?: 'left' | 'right') {
@@ -311,10 +340,10 @@ export default class CanvasTable extends Drawer {
     });
 
     tableData.forEach((row, rowIndex) => {
-      let y = headerHight + rowHeight * rowIndex - (this.scrollY % rowHeight);
       columns.forEach((col, i) => {
         const x = TableUtils.getColumnActualLeft(col, this, type);
         const width = col._realWidth as number;
+        const y = (col._top as number) + (col._height as number) + rowHeight * rowIndex - (this.scrollY % rowHeight);
         this.drawCellText({
           label: row[col.key],
           x,

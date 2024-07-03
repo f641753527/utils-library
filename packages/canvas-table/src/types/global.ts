@@ -1,6 +1,6 @@
 /** 任意JSON */
 export interface IAnyStructure {
-  [key: string]: any
+  [key: string]: any;
 }
 
 /** 方向枚举 */

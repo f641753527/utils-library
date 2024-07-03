@@ -89,14 +89,11 @@ export default class CanvasTableWrapper {
   }
 
   private initScrollBarY() {
-    const { headerHight, maxScrollY, canvas } = this.table;
+    const { maxScrollY, height } = this.table;
     this.scrollBarY.scrollBarBox.style.display = maxScrollY <= 0 ? 'none' : 'block';
     if (maxScrollY <= 0) {
       return
     }
-    /** tBody总高 */
-    const height = canvas.height - headerHight;
-
     /** 滚动条内部块占总高度占比 */
     const scrollBarRate = height / ((height + maxScrollY) || Infinity);
     /** 滚动条 内部块高度 */
@@ -108,7 +105,7 @@ export default class CanvasTableWrapper {
 
   private initScrollBarX() {
     const { maxScrollX, canvas, fixedLeftWidth, fixedRightWidth } = this.table;
-    this.scrollBarY.scrollBarBox.style.display = maxScrollX <= 0 ? 'none' : 'block';
+    this.scrollBarX.scrollBarBox.style.display = maxScrollX <= 0 ? 'none' : 'block';
     if (maxScrollX <= 0) {
       return
     }

@@ -28,6 +28,15 @@
       { label: "姓名", key: "name", width: 120, fixed: 'left' },
       { label: "年龄", key: "age", width: 120 },
       { label: "学校", key: "school", width: 120 },
+      {
+        label: '成绩',
+        key: 'score',
+        children: [
+          { key: 'score1', label: '语文', width: 90 },
+          { key: 'score2', label: '数学', width: 90 },
+          { key: 'score3', label: '英语', width: 90 },
+        ]
+      },
       { label: "分数分数分数分数分数分数分数分数", key: "source", width: 120 },
       { label: "操作", key: "options", minWidth: 120 },
       { label: "序号", key: "index", width: 40 },

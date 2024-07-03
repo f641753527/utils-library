@@ -1,9 +1,17 @@
+import { IAnyStructure } from "../types";
+
 // 节流函数的类型
 interface IConfig {
     /** 开始是否立即执行 */
     leading?: boolean;
     /** 结束是否再执行一次 */
     trailing?: boolean;
+}
+
+interface IBFSProps {
+    childKey?: string;
+    /** 遍历子元素之前执行 */
+    callback?: (node: IAnyStructure, depth: number) => void;
 }
 
 /**
@@ -40,5 +48,26 @@ export class LodashUtils {
                 }, remaining);
             }
         }
+    }
+
+    public static BFS(tree: IAnyStructure[], props?: IBFSProps) {
+        const defaultProps: IBFSProps = {
+            childKey: 'children',
+        };
+
+        const options = Object.assign({}, defaultProps, props || {})
+        const { childKey, callback } = options as Required<IBFSProps>;
+
+        const isValidCallback = callback && typeof callback === 'function';
+
+        const dps = (nodes: IAnyStructure[], depth: number) => {
+            for (const node of nodes) {
+                if (node[childKey] && node[childKey].length) {
+                    dps(node[childKey], depth + 1);
+                }
+                isValidCallback && callback(node, depth);
+            }
+        }
+        dps(tree, 0);
     }
 }
