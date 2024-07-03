@@ -1,6 +1,7 @@
 import { TableConstructor, IColumnProps, IAnyStructure, POSITION, onTableWheelFn } from '../types';
 import { style } from './const';
-import { throttle } from '../utils';
+import { throttle, TableUtils } from '../utils';
+
 
 import Drawer from './Drawer'
 
@@ -147,7 +148,9 @@ export default class CanvasTable extends Drawer {
     const screenLeftWidth = this._clientWidth - staticWidth;
 
     /** 设置列宽度 优先取width 否则取minWidth */
+    let x = 0;
     this.columns.forEach((col, i) => {
+      col._left = x;
       col._realWidth = col.width || Math.max(
         col.minWidth || 0,
         ~~((col.minWidth as number) / (flexWidth || Infinity) * screenLeftWidth)
@@ -165,6 +168,7 @@ export default class CanvasTable extends Drawer {
       if (col.fixed === 'right') {
         this.fixedRightWidth += col._realWidth;
       }
+      x += col._realWidth;
     })
     this.width = Math.min(this.clientWidth, canvasWidth);
     /** canvas width 不能小于固定列宽度 */
@@ -192,12 +196,50 @@ export default class CanvasTable extends Drawer {
     /** 绘制中间位置 */
     this.drawBody();
     this.drawHeader();
+
+    /** 清除左侧 */
+    this.clearCell({
+      /** draw中间部分时 擦除整个画布 所以x直接取0 */
+      x: 0,
+      y: 0,
+      /** draw中间部分时 擦除整个画布 所以width直接取canvas.widths */
+      width: this.fixedLeftWidth,
+      height: this.canvas.height,
+    });
+
+    if (this.maxScrollX > 0 && this.scrollX > 0) {
+      this.drawShadow({
+        x: 0,
+        y: 0,
+        width: this.fixedLeftWidth,
+        height: this._canvas.height,
+        style
+      });
+    }
     /** 绘制左侧 */
     this.drawBody('left');
     this.drawHeader('left');
+
+    /** 清除右侧 */
+    this.clearCell({
+      x: this.canvas.width - this.fixedRightWidth,
+      y: 0,
+      width: this.fixedRightWidth,
+      height: this.canvas.height,
+    });
+    if (this.maxScrollX > 0 && this.scrollX < this.maxScrollX) {
+      this.drawShadow({
+        x: this.canvas.width - this.fixedRightWidth,
+        y: 0,
+        width: this.fixedLeftWidth,
+        height: this._canvas.height,
+        style
+      });
+    }
     /** 绘制右侧 */
     this.drawBody('right');
     this.drawHeader('right');
+
     [POSITION.LEFT, POSITION.TOP, POSITION.RIGHT, POSITION.BOTTOM].forEach(position => {
       this.drawCellBorder({
         x: 0,
@@ -206,7 +248,7 @@ export default class CanvasTable extends Drawer {
         height: this.canvas.height,
         position,
         style: style,
-      })
+      });
     });
   }
   
@@ -221,99 +263,77 @@ export default class CanvasTable extends Drawer {
   }
   /** 绘制表头 */
   drawHeader(type?: 'left' | 'right') {
-    const { fixedRightWidth, canvas, headerHight, columns: _columns } = this;
+    const { headerHight, columns: _columns } = this;
 
     const headerStyle = { ...style, ...style.header };
-
-    let x = type === 'left' ? 0 : type === 'right' ? (canvas.width - fixedRightWidth) : this.fixedLeftWidth - this.scrollX;
-    let width = type === 'left' ? this.fixedLeftWidth : type === 'right' ? this.fixedRightWidth : canvas.width + this.maxScrollX;
-    this.clearCell({
-      x,
-      y: 0,
-      width,
-      height: headerHight,
-    });
 
     const columns = _columns.filter(col => {
       return type ? col.fixed === type : (col.fixed !== 'left' && col.fixed !== 'right')
     });
-
-    /** 背景色 */
-    this.fillRect({
-      x,
-      y: 0, 
-      width,
-      height: headerHight,
-      style: headerStyle,
-    });
-
     columns.forEach((col, i) => {
+      const x = TableUtils.getColumnActualLeft(col, this, type);
+      const width = col._realWidth as number;
+      /** 背景色 */
+      this.fillRect({
+        x,
+        y: 0,
+        width,
+        height: headerHight,
+        style: headerStyle,
+      });
       this.drawCellText({
         label: col.label,
         x,
         y: 0,
-        width: col._realWidth as number,
+        width,
         height: headerHight,
         style: headerStyle,
       });
-      [POSITION.RIGHT, POSITION.BOTTOM].forEach(position => {
+      const positions = [POSITION.RIGHT, POSITION.BOTTOM];
+      positions.forEach(position => {
         this.drawCellBorder({
           x,
           y: 0,
-          width: col._realWidth as number,
+          width,
           height: headerHight,
           position,
           style: headerStyle,
         })
       });
-      x += col._realWidth as number;
     });
   }
   /** 绘制body */
   drawBody(type?: 'left' | 'right') {
-    const { canvas, fixedRightWidth, height, headerHight, rowHeight, columns: _columns, tableData } = this;
-
-    let x = type === 'left' ? 0 : type === 'right' ? (canvas.width - fixedRightWidth) : this.fixedLeftWidth - this.scrollX;
-    this.clearCell({
-      x,
-      y: headerHight,
-      width: type === 'left' ? this.fixedLeftWidth : type === 'right' ? this.fixedRightWidth : canvas.width + this.maxScrollX,
-      height: height,
-    });
+    const { headerHight, rowHeight, columns: _columns, tableData } = this;
 
     const columns = _columns.filter(col => {
       return type ? col.fixed === type : (col.fixed !== 'left' && col.fixed !== 'right')
     });
 
     tableData.forEach((row, rowIndex) => {
-      let x = type === 'left' ? 0 : type === 'right' ? (canvas.width - fixedRightWidth) : this.fixedLeftWidth - this.scrollX;
       let y = headerHight + rowHeight * rowIndex - (this.scrollY % rowHeight);
-      columns.forEach(col => {
+      columns.forEach((col, i) => {
+        const x = TableUtils.getColumnActualLeft(col, this, type);
+        const width = col._realWidth as number;
         this.drawCellText({
           label: row[col.key],
           x,
           y,
-          width: col._realWidth as number,
+          width,
           height: rowHeight,
           style,
         });
-        this.drawCellBorder({
-          x,
-          y,
-          width: col._realWidth as number,
-          height: rowHeight,
-          position: POSITION.RIGHT,
-          style: style,
+        const positions = [POSITION.RIGHT, POSITION.BOTTOM];
+        positions.forEach(position => {
+          this.drawCellBorder({
+            x,
+            y,
+            width,
+            height: rowHeight,
+            position,
+            style: style,
+          })
         })
-        this.drawCellBorder({
-          x,
-          y,
-          width: col._realWidth as number,
-          height: rowHeight,
-          position: POSITION.BOTTOM,
-          style: style,
-        })
-        x += col._realWidth as number;
       })
     });
   }

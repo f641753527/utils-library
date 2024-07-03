@@ -21,4 +21,5 @@ export const style: IStyle = {
   color: '#333',
   fontSize: 12,
   primary: '#096dd9',
+  shadowColor: 'rgba(0, 0, 0, 0.4)',
 }

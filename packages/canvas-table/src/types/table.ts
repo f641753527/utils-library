@@ -8,6 +8,8 @@ export interface IColumnProps {
   minWidth?: number;
   /** 实际渲染宽度 */
   _realWidth?: number;
+  /** 距离canvas左侧开始位置的偏移 */
+  _left?: number;
   /** 左侧或右侧固定 */
   fixed?: 'left' | 'right';
 }

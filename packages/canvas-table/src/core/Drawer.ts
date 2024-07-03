@@ -42,8 +42,8 @@ export default class Drawer {
         ctx.lineTo(x, y + height - 0.5);
         break;
       case POSITION.RIGHT:
-        ctx.moveTo(x + width - 0.5, y + 0.5);
-        ctx.lineTo(x + width - 0.5, y + height - 0.5);
+        ctx.moveTo(x + width, y + 0.5);
+        ctx.lineTo(x + width, y + height - 0.5);
         break;
       default:
         break;
@@ -80,4 +80,23 @@ export default class Drawer {
     const { x, y, width, height } = config;
     ctx.clearRect(x, y, width, height);
   }
+
+  drawShadow(config: Pick<ICellDrawProps, 'x' | 'y' | 'width' | 'height' | 'style'>) {
+    const { canvasCtx: ctx } = this;
+    const defaultStyle = { shadowBlur: 20, shadowColor: 'rgba(0, 0, 0, 0.4)' };
+    const { x, y, width, height, style } = config;
+
+    ctx.shadowBlur = style.shadowBlur || defaultStyle.shadowBlur;
+    ctx.shadowColor = style.shadowColor || defaultStyle.shadowColor;
+    ctx.shadowOffsetY = 0;
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(
+      x,
+      y,
+      width,
+      height,
+    );
+    ctx.shadowColor = 'rgba(0, 0, 0, 0)';
+  }
+
 }

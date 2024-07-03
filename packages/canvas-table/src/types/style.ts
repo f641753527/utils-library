@@ -8,6 +8,8 @@ interface baseStyle {
   fontSize?: number;
   fontWeight?: string | number;
   primary?: string;
+  shadowColor?: string;
+  shadowBlur?: number;
 }
 
 /** CanvasTable 样式 */
