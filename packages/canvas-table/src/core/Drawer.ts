@@ -1,5 +1,5 @@
 import { IStyle, POSITION } from '../types';
-import { textOverflow } from '../utils';
+import { CanvasUtils } from '../utils';
 
 /** 单元格绘制属性 */
 interface ICellDrawProps {
@@ -61,7 +61,7 @@ export default class Drawer {
     ctx.font = `${fontWeight} ${fontSize}px ${'Microsoft YaHei'}`;
     ctx.fillStyle = color as string;
 
-    const { text } = textOverflow(ctx, label, width - padding[1] -  padding[3], fontSize, fontWeight)
+    const { text } = CanvasUtils.textOverflow(ctx, label, width - padding[1] -  padding[3], fontSize, fontWeight)
 
     ctx.fillText(text, x + padding[3], y + fontSize + (height - fontSize) / 2);
   }

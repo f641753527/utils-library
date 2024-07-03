@@ -1,6 +1,6 @@
 import { TableConstructor, IColumnProps, IAnyStructure, POSITION, onTableWheelFn } from '../types';
 import { style } from './const';
-import { throttle, TableUtils } from '../utils';
+import { LodashUtils, TableUtils } from '../utils';
 
 
 import Drawer from './Drawer'
@@ -252,7 +252,7 @@ export default class CanvasTable extends Drawer {
     });
   }
   
-  throttleDraw = throttle(this.draw, 60);
+  throttleDraw = LodashUtils.throttle(this.draw, 60);
 
   /** 清除画布 */
   clearCanvans() {

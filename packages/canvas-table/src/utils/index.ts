@@ -1,3 +1,3 @@
-export * from './canvas'
-export * from './lodash'
+export * from './CanvasUtils'
+export * from './LodashUtils'
 export * from './TableUtils'

@@ -1,16 +1,19 @@
+/**
+ * @description canvas 工具类
+*/
+export class CanvasUtils {
 
-// 校验中文正则
-const chineseReg = /[\u4e00-\u9fa5|%]/
-const chineseMark = /[\u3002|\uff1f|\uff01|\uff0c|\u3001|\uff1b|\uff1a|\u201c|\u201d|\u2018|\u2019|\uff08|\uff09|\u300a|\u300b|\u3008|\u3009|\u3010|\u3011|\u300e|\u300f|\u300c|\u300d|\ufe43|\ufe44|\u3014|\u3015|\u2026|\u2014|\uff5e|\ufe4f|\uffe5|@|$]/
-const numReg = /[0-9]/
+  public static readonly chineseReg = /[\u4e00-\u9fa5|%]/;
+  public static readonly chineseMark = /[\u3002|\uff1f|\uff01|\uff0c|\u3001|\uff1b|\uff1a|\u201c|\u201d|\u2018|\u2019|\uff08|\uff09|\u300a|\u300b|\u3008|\u3009|\u3010|\u3011|\u300e|\u300f|\u300c|\u300d|\ufe43|\ufe44|\u3014|\u3015|\u2026|\u2014|\uff5e|\ufe4f|\uffe5|@|$]/;
+  public static readonly numReg = /[0-9]/;
 
-export const textOverflow = (
+  public static textOverflow(
     ctx: CanvasRenderingContext2D,
     text: string,
     width: number,
     fontSize: number,
     fontWeight: string | number,
-) => {
+  ) {
     let str = ''
     let len = 0
     let over = false
@@ -30,9 +33,9 @@ export const textOverflow = (
       let arr = text.split('')
       for (let i = 0, le = arr.length; i < le; i++) {
         let char = arr[i]
-        if (chineseReg.test(char) || chineseMark.test(char)) {
+        if (CanvasUtils.chineseReg.test(char) || CanvasUtils.chineseMark.test(char)) {
           len += zhWidth
-        } else if (numReg.test(char)) {
+        } else if (CanvasUtils.numReg.test(char)) {
           len += numWidth
         } else {
           len += Math.round(ctx.measureText(char).width * 100) / 100
@@ -48,9 +51,6 @@ export const textOverflow = (
     } else {
       str = text
     }
-    return {
-      tw,
-      over,
-      text: str
-    }
+    return { tw, over, text: str }
+  }
 }
