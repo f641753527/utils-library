@@ -15,6 +15,8 @@ export interface IColumnProps {
   _top?: number;
   /** 左侧或右侧固定 */
   fixed?: 'left' | 'right';
+  /** 对齐方式 */
+  align?: 'left' | 'center' | 'right';
   children?: IColumnProps[];
 }
 

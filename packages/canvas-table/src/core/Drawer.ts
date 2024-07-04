@@ -10,6 +10,8 @@ interface ICellDrawProps {
   height: number;
   position: POSITION;
   style: IStyle;
+  /** 对齐方式 */
+  align?: 'left' | 'center' | 'right';
 }
 
 export default class Drawer {
@@ -55,15 +57,21 @@ export default class Drawer {
   /** 绘制单元格文字 */
   drawCellText (config: Omit<ICellDrawProps, 'position'>): void {
     const { canvasCtx: ctx } = this;
-    const { label, x, y, width, height, style } = config;
+    const { label, x, y, width, height, style, align = 'left' } = config;
     const { fontSize, fontWeight, color, padding } = style as Required<IStyle>;
 
     ctx.font = `${fontWeight} ${fontSize}px ${'Microsoft YaHei'}`;
     ctx.fillStyle = color as string;
 
-    const { text } = CanvasUtils.textOverflow(ctx, label, width - padding[1] -  padding[3], fontSize, fontWeight)
-
-    ctx.fillText(text, x + padding[3], y + fontSize + (height - fontSize) / 2);
+    const { text, width: textWidth, isOver } = CanvasUtils.textOverflow(ctx, label, width - padding[1] -  padding[3], fontSize, fontWeight);
+    /** 初始x位置 */
+    const initLeft = x + padding[3];
+    /** 最大绘制宽度 */
+    const maxDrawWidth = width - padding[1] -  padding[3];
+    /** 富余空间 */
+    const leftWidth = isOver ? 0 : maxDrawWidth - textWidth;
+    const left = align === 'left' ? initLeft : align === 'right' ? (initLeft + leftWidth) : (initLeft + leftWidth / 2);
+    ctx.fillText(text, left, y + fontSize + (height - fontSize) / 2);
   }
 
   /** 填充背景 */

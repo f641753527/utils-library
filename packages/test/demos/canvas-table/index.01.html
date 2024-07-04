@@ -26,13 +26,13 @@
     const columns = [
       { label: "序号", key: "index", width: 40, fixed: 'left' },
       { label: "姓名", key: "name", width: 120, fixed: 'left' },
-      { label: "年龄", key: "age", width: 120 },
+      { label: "年龄", key: "age", width: 120, align: 'right' },
       { label: "学校", key: "school", width: 120 },
       {
         label: '成绩',
         key: 'score',
         children: [
-          { key: 'score1', label: '语文', width: 90 },
+          { key: 'score1', label: '语文', width: 90, align: 'center' },
           { key: 'score2', label: '数学', width: 90 },
           { key: 'score3', label: '英语', width: 90 },
         ]
@@ -68,8 +68,11 @@
           index: i + 1,
           name: '你好啊',
           age: ~~(Math.random() * 99),
-          school: '五道口职业技术学院',
+          school: '五道口职业技术学院五道口职业技术学院',
           source: ~~(Math.random() * 150),
+          score1: ~~(Math.random() * 100),
+          score2: ~~(Math.random() * 100),
+          score3: ~~(Math.random() * 100),
         }))
         resolve(data);
       }, 200));

@@ -312,6 +312,7 @@ export default class CanvasTable extends Drawer {
           width,
           height: hasChildren ? headerHight : height,
           style: headerStyle,
+          align: hasChildren ? 'center' : col.align,
         });
         const positions = [POSITION.RIGHT, POSITION.BOTTOM];
         positions.forEach(position => {
@@ -333,11 +334,19 @@ export default class CanvasTable extends Drawer {
   }
   /** 绘制body */
   drawBody(type?: 'left' | 'right') {
-    const { headerHight, rowHeight, columns: _columns, tableData } = this;
+    const { rowHeight, columns: _columns, tableData } = this;
 
-    const columns = _columns.filter(col => {
+    /** 区域columns */
+    const blockColumns = _columns.filter(col => {
       return type ? col.fixed === type : (col.fixed !== 'left' && col.fixed !== 'right')
     });
+    /** body渲染只需要叶子节点 即没有children的列 */
+    const columns: IColumnProps[] = []
+    LodashUtils.BFS(blockColumns, { callback: (col, depth) => {
+      if (!col.children || !col.children.length) {
+        columns.push(col as IColumnProps);
+      }
+    }});
 
     tableData.forEach((row, rowIndex) => {
       columns.forEach((col, i) => {
@@ -351,6 +360,7 @@ export default class CanvasTable extends Drawer {
           width,
           height: rowHeight,
           style,
+          align: col.align,
         });
         const positions = [POSITION.RIGHT, POSITION.BOTTOM];
         positions.forEach(position => {

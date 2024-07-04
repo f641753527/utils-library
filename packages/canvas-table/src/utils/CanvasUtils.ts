@@ -16,7 +16,7 @@ export class CanvasUtils {
   ) {
     let str = ''
     let len = 0
-    let over = false
+    let isOver = false
     const zhWidth = fontSize // 中文
     // 测量数字和...的宽度
     fontWeight = fontWeight || ''
@@ -42,7 +42,7 @@ export class CanvasUtils {
         }
         if (len > (width - threePoint)) {
           str += '...'
-          over = true
+          isOver = true
           break
         } else {
           str += char
@@ -51,6 +51,6 @@ export class CanvasUtils {
     } else {
       str = text
     }
-    return { tw, over, text: str }
+    return { width: tw, isOver, text: str }
   }
 }
