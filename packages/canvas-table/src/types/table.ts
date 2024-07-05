@@ -30,6 +30,8 @@ export interface ITableAttrs {
   height?: number;
   rowHeight?: TRowHeight;
   headerHight?: number;
+  /** 是否显示索引列 */
+  index?: boolean;
 }
 
 /** canvas-table wrapper 构造器 */

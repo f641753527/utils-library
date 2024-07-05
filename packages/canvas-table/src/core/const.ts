@@ -4,6 +4,7 @@ export const defaultTableAttrs: Partial<ITableAttrs> = {
   height: 300,
   headerHight: 32,
   rowHeight: 28,
+  index: true,
 }
 
 export const style: IStyle = {

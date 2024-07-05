@@ -338,14 +338,14 @@ export default class CanvasTable extends Drawer {
       }
     }});
 
-    tableData.forEach((row) => {
+    tableData.forEach((row, rowIndex) => {
       columns.forEach((col, i) => {
         const x = TableUtils.getColumnActualLeft(col, this, type);
         const width = col._realWidth as number;
         const { height, top } = rowHeights[row.index];
         const y = (col._top as number) + (col._height as number) + (top - scrollY);
         this.drawCellText({
-          label: row[col.key],
+          label: col.key === '_index' ? (rowIndex + 1) : row[col.key],
           x,
           y,
           width,

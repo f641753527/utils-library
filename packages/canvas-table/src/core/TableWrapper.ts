@@ -1,4 +1,4 @@
-import { TableWrapperConstructor, EnumScrollBarDirection, IAnyStructure } from '../types';
+import { TableWrapperConstructor, ITableAttrs, EnumScrollBarDirection, IAnyStructure } from '../types';
 import Table from './Table';
 import ScrollBar from './ScrollBar';
 import { defaultTableAttrs } from './const';
@@ -23,17 +23,23 @@ export default class CanvasTableWrapper {
     this.scrollBarY = new ScrollBar({
       direction: EnumScrollBarDirection.VERTICAL,
       onDrag: this.onScrollBarYDrag,
-    })
+    });
     /***/
     this.scrollBarX = new ScrollBar({
       direction: EnumScrollBarDirection.HORIZONTAL,
       onDrag: this.onScrollBarXDrag,
-    })
+    });
+
+    const combinedTableAttrs: ITableAttrs = {
+      ...defaultTableAttrs,
+      ...tableAttrs,
+    }
+
+    this.initSetting(combinedTableAttrs);
 
     /** 表格实例 */
     this.table = new Table({
-      ...defaultTableAttrs,
-      ...tableAttrs,
+      ...combinedTableAttrs,
       onWheel: this.onCanvasWheel,
     });
 
@@ -73,6 +79,20 @@ export default class CanvasTableWrapper {
     this.init();
     el.style.padding = '0';
     this.setWrapperSize();
+  }
+
+  /** 初始化表格配置 */
+  private initSetting(settings: ITableAttrs) {
+    const { columns, index } = settings;
+    if (index === true) {
+      columns.unshift({
+        key: '_index',
+        label: '序号',
+        width: 40,
+        align: 'center',
+        fixed: 'left',
+      })
+    }
   }
 
   private init() {
