@@ -1,4 +1,12 @@
-import { TableConstructor, IColumnProps, IAnyStructure, POSITION, onTableWheelFn, TRowHeight } from '../types';
+import type {
+  TableConstructor,
+  IColumnProps,
+  IAnyStructure,
+  tableWheelEvent,
+  TRowHeight,
+  tableCellClickEvent
+} from '../types';
+import { POSITION } from '../types'
 import { style } from './const';
 import { LodashUtils, TableUtils } from '../utils';
 import type { IRowPosInfo } from '../utils';
@@ -36,14 +44,15 @@ export default class CanvasTable extends Drawer {
   private _scrollY: number = 0;
   private _maxScrollY: number = 0;
 
-  private onCanvasWheel?: onTableWheelFn;
+  private onCanvasWheel?: tableWheelEvent;
+  private onCellClick?: tableCellClickEvent;
 
   constructor(config: TableConstructor) {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext("2d") as CanvasRenderingContext2D;
     super(context);
 
-    const { data, columns, height, rowHeight, headerHight, onWheel } = config;
+    const { data, columns, height, rowHeight, headerHight, onWheel, onCellClick } = config;
     this._canvas = canvas;
     this.columns = columns;
     this.data = data;
@@ -55,6 +64,9 @@ export default class CanvasTable extends Drawer {
 
     if (onWheel) {
       this.onCanvasWheel = onWheel;
+    }
+    if (onCellClick) {
+      this.onCellClick = onCellClick;
     }
 
     this.initEvents();
@@ -373,9 +385,11 @@ export default class CanvasTable extends Drawer {
 
   private initEvents = () => {
     this.canvas.addEventListener('wheel', this.onWheel, { passive: false });
+    this.canvas.addEventListener('click', this.onClick);
 
     window.onbeforeunload = () => {
       this.canvas.removeEventListener('wheel', this.onWheel);
+      this.canvas.removeEventListener('click', this.onClick);
     }
   }
 
@@ -405,6 +419,38 @@ export default class CanvasTable extends Drawer {
       if (onCanvasWheel && typeof onCanvasWheel === 'function') {
         onCanvasWheel(currentScrollY, this.maxScrollY);
       }
+    }
+  }
+
+  private onClick = (e: MouseEvent) => {
+    const { columns, onCellClick, scrollX, maxScrollX, canvas, fixedLeftWidth, fixedRightWidth } = this;
+
+    if (onCellClick && typeof onCellClick === 'function') {
+      const { offsetX, offsetY } = e;
+
+      const _columns: IColumnProps[] = [];
+      LodashUtils.BFS(columns, { callback: (col, depth) => {
+        if (!col.children || !col.children.length) {
+          _columns.push(col as IColumnProps);
+        }
+      }});
+
+      /** 实际距离canvas左侧距离 */
+      let actualLeft = offsetX;
+      /** 点击右侧fixed区域 需要加上滚动隐藏部门 */
+      if (offsetX > canvas.width - fixedRightWidth) {
+        actualLeft += maxScrollX;
+      } else if (offsetX > fixedLeftWidth) {
+        /** 点击中间部门 需要加上滚动距离 */
+        actualLeft += scrollX;
+      }
+
+      const col = _columns.find(c =>
+        actualLeft > (c._left as number) &&
+        actualLeft < (c._left as number) + (c._realWidth as number)
+      )
+      
+      console.log(col);
     }
   }
 

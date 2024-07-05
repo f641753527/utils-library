@@ -47,7 +47,8 @@
       data: tableData,
       columns,
       height: 360,
-      rowHeight: (row) => ~~(Math.random() * 60 + 20)
+      rowHeight: (row) => ~~(Math.random() * 60 + 20),
+      onCellClick: ({ row, key }) => { console.log(key) }
     })
 
     getData().then(res => {

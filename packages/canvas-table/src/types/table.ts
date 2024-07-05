@@ -34,15 +34,19 @@ export interface ITableAttrs {
   headerHight?: number;
   /** 是否显示索引列 */
   index?: boolean;
+  /** 单元格点击事件 */
+  onCellClick?: tableCellClickEvent;
 }
 
 /** canvas-table wrapper 构造器 */
 export interface TableWrapperConstructor extends ITableAttrs {
   el: string;
 }
-
-export type onTableWheelFn =  (scrollDistance: number, maxScrollDistance: number) => void;
+/** 单元格点击事件 */
+export type tableCellClickEvent =  (c: { row: IAnyStructure; key: string; left: number; width: number; }) => void;
+/** 表格滚动事件 */
+export type tableWheelEvent =  (scrollDistance: number, maxScrollDistance: number) => void;
 /** canvas-table 构造器 */
 export interface TableConstructor extends ITableAttrs {
-  onWheel?: onTableWheelFn;
+  onWheel?: tableWheelEvent;
 }
