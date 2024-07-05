@@ -36,12 +36,7 @@
           { key: 'score3', label: '英语', width: 90 },
         ]
       },
-      { label: "分数分数分数分数分数分数分数分数", key: "source", width: 120 },
-      { label: "操作", key: "options", minWidth: 120 },
-      { label: "姓名", key: "name", width: 120 },
-      { label: "年龄", key: "age", width: 120 },
-      { label: "学校", key: "school", width: 120 },
-      { label: "分数分数分数分数分数分数分数分数", key: "source", width: 120 },
+      { label: "性别", key: "gender", filter: row => row.gender === 1 ? '男' : '女', width: 120 },
       { label: "操作", key: "options", minWidth: 120, fixed: 'right' },
     ]
 
@@ -68,6 +63,7 @@
           name: '你好啊',
           age: ~~(Math.random() * 99),
           school: '五道口职业技术学院五道口职业技术学院',
+          gender: ~~(Math.random() * 2),
           source: ~~(Math.random() * 150),
           score1: ~~(Math.random() * 100),
           score2: ~~(Math.random() * 100),

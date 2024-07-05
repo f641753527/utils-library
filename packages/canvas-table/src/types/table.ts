@@ -18,6 +18,8 @@ export interface IColumnProps {
   /** 对齐方式 */
   align?: 'left' | 'center' | 'right';
   children?: IColumnProps[];
+  /** 文本过滤 */
+  filter?: (row: IAnyStructure, col: IColumnProps, index: number) => string | number;
 }
 
 export type TRowHeight = number | ((row: IAnyStructure, i: number) => number)
