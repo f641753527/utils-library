@@ -1,6 +1,9 @@
-import { TableConstructor, IColumnProps, IAnyStructure, POSITION, onTableWheelFn } from '../types';
+import { TableConstructor, IColumnProps, IAnyStructure, POSITION, onTableWheelFn, TRowHeight } from '../types';
 import { style } from './const';
 import { LodashUtils, TableUtils } from '../utils';
+import type { IRowPosInfo } from '../utils';
+
+
 
 
 import Drawer from './Drawer'
@@ -10,9 +13,7 @@ export default class CanvasTable extends Drawer {
   private _clientWidth: number = 0;
 
   private columns: IColumnProps[] = [];
-  private _sourceData: IAnyStructure[] = [];
-  /** 当前展示数据 */
-  private tableData: IAnyStructure[] = [];
+  private data: IAnyStructure[] = [];
   /** 初始传入高度 */
   private initialHeight: number;
   /** canvas body 实际高度 */
@@ -20,7 +21,9 @@ export default class CanvasTable extends Drawer {
   /** canvas 总宽度 */
   private width: number = 0;
   private _headerHight: number = 0;
-  private _rowHeight: number = 0;
+  private rowHeight: TRowHeight;
+  /** 记录每一行的高度信息 */
+  private rowHeights: IRowPosInfo[] = [];
   /** 表头最大深度 */
   private maxHeaderDepth: number = 1;
 
@@ -33,9 +36,6 @@ export default class CanvasTable extends Drawer {
   private _scrollY: number = 0;
   private _maxScrollY: number = 0;
 
-  private startIndex: number = 0;
-  private endIndex: number = 0;
-
   private onCanvasWheel?: onTableWheelFn;
 
   constructor(config: TableConstructor) {
@@ -46,10 +46,10 @@ export default class CanvasTable extends Drawer {
     const { data, columns, height, rowHeight, headerHight, onWheel } = config;
     this._canvas = canvas;
     this.columns = columns;
-    this._sourceData = data;
+    this.data = data;
     this.initialHeight = height as number;
-    this._headerHight = (headerHight as number)
-    this._rowHeight = rowHeight as number;
+    this._headerHight = (headerHight as number);
+    this.rowHeight = rowHeight as TRowHeight;
 
     this.setState(data);
 
@@ -82,15 +82,6 @@ export default class CanvasTable extends Drawer {
   }
   get scrollX() {
     return this._scrollX;
-  }
-  get sourceData() {
-    return this._sourceData;
-  }
-  set sourceData(data: IAnyStructure[]) {
-    this._sourceData = data;
-  }
-  get rowHeight () {
-    return this._rowHeight;
   }
   get headerHight() {
     return this._headerHight;
@@ -128,10 +119,12 @@ export default class CanvasTable extends Drawer {
   /** 设置初始状态  */
   public setState(data: IAnyStructure[]) {
     let { initialHeight: height, rowHeight } = this;
+    this.data = data;
+    this.rowHeights = TableUtils.getRowsPosInfo(data, rowHeight);
+
     /** 所有数据渲染真实高度 */
-    const domTotalHeight = data.length * (rowHeight as number);
+    const domTotalHeight = this.rowHeights.reduce((res, row) => res + row.height, 0);
     height = Math.min(height as number, domTotalHeight);
-    this._sourceData = data;
     this._height = (height as number);
     this._maxScrollY = Math.max(domTotalHeight - height, 0);
     this.scrollY = 0;
@@ -205,11 +198,6 @@ export default class CanvasTable extends Drawer {
   }
   /** 设置当前可视区展示的数据 */
   draw = () => {
-    /** 可视区展示的条数 */
-    const limit = Math.ceil(this.height / this.rowHeight);
-    this.startIndex = ~~(this._scrollY / this.rowHeight);
-    this.endIndex = Math.min(this.startIndex + limit, this.sourceData.length);
-    this.tableData = this.sourceData.slice(this.startIndex, this.endIndex + 1);
     // 清除画布
     this.clearCanvans();
 
@@ -334,7 +322,9 @@ export default class CanvasTable extends Drawer {
   }
   /** 绘制body */
   drawBody(type?: 'left' | 'right') {
-    const { rowHeight, columns: _columns, tableData } = this;
+    const { columns: _columns, scrollY, height, rowHeights, data } = this;
+
+    const tableData = TableUtils.getScreenRows(scrollY, height, rowHeights, data);
 
     /** 区域columns */
     const blockColumns = _columns.filter(col => {
@@ -348,17 +338,18 @@ export default class CanvasTable extends Drawer {
       }
     }});
 
-    tableData.forEach((row, rowIndex) => {
+    tableData.forEach((row) => {
       columns.forEach((col, i) => {
         const x = TableUtils.getColumnActualLeft(col, this, type);
         const width = col._realWidth as number;
-        const y = (col._top as number) + (col._height as number) + rowHeight * rowIndex - (this.scrollY % rowHeight);
+        const { height, top } = rowHeights[row.index];
+        const y = (col._top as number) + (col._height as number) + (top - scrollY);
         this.drawCellText({
           label: row[col.key],
           x,
           y,
           width,
-          height: rowHeight,
+          height,
           style,
           align: col.align,
         });
@@ -368,7 +359,7 @@ export default class CanvasTable extends Drawer {
             x,
             y,
             width,
-            height: rowHeight,
+            height,
             position,
             style: style,
           })

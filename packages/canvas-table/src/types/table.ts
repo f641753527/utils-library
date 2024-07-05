@@ -20,13 +20,15 @@ export interface IColumnProps {
   children?: IColumnProps[];
 }
 
+export type TRowHeight = number | ((row: IAnyStructure, i: number) => number)
+
 /** table 表哥组件 props */
 export interface ITableAttrs {
   columns: IColumnProps[];
   data: IAnyStructure[];
   /** 表格高度 */
   height?: number;
-  rowHeight?: number;
+  rowHeight?: TRowHeight;
   headerHight?: number;
 }
 

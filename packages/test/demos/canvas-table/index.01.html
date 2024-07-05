@@ -54,6 +54,7 @@
       data: tableData,
       columns,
       height: 360,
+      rowHeight: (row) => ~~(Math.random() * 60 + 20)
     })
 
     getData().then(res => {
