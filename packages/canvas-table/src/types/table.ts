@@ -20,6 +20,8 @@ export interface IColumnProps {
   children?: IColumnProps[];
   /** 文本过滤 */
   filter?: (row: IAnyStructure, col: IColumnProps, index: number) => string | number;
+  /** 表头气泡 */
+  headerTooltip?: string;
 }
 
 export type TRowHeight = number | ((row: IAnyStructure, i: number) => number)

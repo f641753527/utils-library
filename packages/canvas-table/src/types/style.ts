@@ -10,6 +10,9 @@ interface baseStyle {
   primary?: string;
   shadowColor?: string;
   shadowBlur?: number;
+  iconFamily?: string;
+  iconSize?: number;
+  iconColor?: string;
 }
 
 /** CanvasTable 样式 */

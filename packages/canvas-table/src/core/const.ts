@@ -14,6 +14,9 @@ export const style: IStyle = {
     color: '#1a1a1a',
     borderColor: '#d2d2d6',
     backgroundColor: '#ebecf0',
+    iconFamily: 'iconfont',
+    iconSize: 16,
+    iconColor: '#333'
   },
   padding: [6, 6, 6, 6],
   borderColor: '#d2d2d6',

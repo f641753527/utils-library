@@ -12,6 +12,13 @@ interface ICellDrawProps {
   style: IStyle;
   /** 对齐方式 */
   align?: 'left' | 'center' | 'right';
+  /** 是否为icon */
+  icon?: {
+    text: string;
+    direction: 'left' | 'right';
+    style?: IStyle;
+  } | null;
+  /** 是否为主字段 */
 }
 
 export default class Drawer {
@@ -57,21 +64,42 @@ export default class Drawer {
   /** 绘制单元格文字 */
   drawCellText (config: Omit<ICellDrawProps, 'position'>): void {
     const { canvasCtx: ctx } = this;
-    const { label, x, y, width, height, style, align = 'left' } = config;
-    const { fontSize, fontWeight, color, padding } = style as Required<IStyle>;
+    const { label, x, y, width, height, style, align = 'left', icon } = config;
+    const { fontSize, fontWeight, color } = style as Required<IStyle>;
+    /** 文本最大绘制宽度 */
+    let maxDrawWidth = width;
+    /** 初始文本绘制距离左侧位置 */
+    let initLeft = x;
+    if (icon) {
+      const { style: iconStyle, direction = 'right' } = icon;
+      const { iconSize, padding: iconPadding } = (iconStyle || style) as Required<IStyle>;
+      const iconWidth = iconSize + iconPadding[1] + iconPadding[3];
+      maxDrawWidth = width - iconWidth;
+      if (direction === 'left') {
+        initLeft = x + iconWidth;
+      }
+    }
 
     ctx.font = `${fontWeight} ${fontSize}px ${'Microsoft YaHei'}`;
     ctx.fillStyle = color as string;
 
-    const { text, width: textWidth, isOver } = CanvasUtils.textOverflow(ctx, label, width - padding[1] -  padding[3], fontSize, fontWeight);
-    /** 初始x位置 */
-    const initLeft = x + padding[3];
-    /** 最大绘制宽度 */
-    const maxDrawWidth = width - padding[1] -  padding[3];
+    const { text, width: textWidth, isOver } = CanvasUtils.textOverflow(ctx, label, maxDrawWidth, fontSize, fontWeight);
     /** 富余空间 */
     const leftWidth = isOver ? 0 : maxDrawWidth - textWidth;
     const left = align === 'left' ? initLeft : align === 'right' ? (initLeft + leftWidth) : (initLeft + leftWidth / 2);
     ctx.fillText(text, left, y + fontSize + (height - fontSize) / 2);
+
+    /** 绘制icon */
+    if (icon) {
+      const { text: iconText, direction = 'right', style: iconStyle  } = icon;
+      const { iconColor, iconFamily, iconSize, padding } = (iconStyle || style) as Required<IStyle>;
+      ctx.font = `${fontWeight} ${iconSize}px ${iconFamily}`;
+      ctx.fillStyle = iconColor;
+      const left = direction === 'left' ? x + padding[3] : x + maxDrawWidth + padding[3];
+      ctx.fillText(
+        String.fromCharCode(parseInt(iconText.replace('&#x', ''), 16)),
+        left, y + iconSize + (height - iconSize) / 2);
+    }
   }
 
   /** 填充背景 */

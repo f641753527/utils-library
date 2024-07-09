@@ -4,7 +4,8 @@ import type {
   IAnyStructure,
   tableWheelEvent,
   TRowHeight,
-  tableCellMouseEventFunc
+  tableCellMouseEventFunc,
+  IStyle
 } from '../types';
 import { POSITION } from '../types'
 import { style } from './const';
@@ -313,7 +314,8 @@ export default class CanvasTable extends Drawer {
   drawHeader(type?: 'left' | 'right') {
     const { headerHight, columns: _columns } = this;
 
-    const headerStyle = { ...style, ...style.header };
+    const headerStyle = { ...style, ...style.header } as Required<IStyle>;
+    const { padding } = headerStyle;
 
     const columns = _columns.filter(col => {
       return type ? col.fixed === type : (col.fixed !== 'left' && col.fixed !== 'right')
@@ -335,12 +337,17 @@ export default class CanvasTable extends Drawer {
         });
         this.drawCellText({
           label: col.label,
-          x,
+          x: x + padding[3],
           y,
-          width,
+          width: width - padding[1] - padding[3],
           height: hasChildren ? headerHight : height,
           style: headerStyle,
           align: hasChildren ? 'center' : col.align,
+          icon: col.headerTooltip ? {
+            text: '&#xe7dd;',
+            direction: 'right',
+            style: { ...headerStyle, padding: [0, 4, 0, 4], fontWeight: 500 },
+          } : null,
         });
         const positions = [POSITION.RIGHT, POSITION.BOTTOM];
         positions.forEach(position => {
@@ -366,6 +373,8 @@ export default class CanvasTable extends Drawer {
 
     const tableData = TableUtils.getScreenRows(scrollY, height, rowHeights, data);
 
+    const { padding } = style as Required<IStyle>;
+
     /** 区域columns */
     const blockColumns = _columns.filter(col => {
       return type ? col.fixed === type : (col.fixed !== 'left' && col.fixed !== 'right')
@@ -389,9 +398,9 @@ export default class CanvasTable extends Drawer {
           : filter ? filter(row, col, rowIndex) : row[key];
         this.drawCellText({
           label,
-          x,
+          x: x + padding[3],
           y,
-          width,
+          width: width - padding[1] - padding[3],
           height,
           style,
           align: align,
