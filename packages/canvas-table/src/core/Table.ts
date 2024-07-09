@@ -357,7 +357,7 @@ export default class CanvasTable extends Drawer {
         const width = _realWidth as number;
         const { height, top } = rowHeights[row.index];
         const y = (_top as number) + (_height as number) + (top - scrollY);
-        const label = key === '_index' ? (rowIndex + 1)
+        const label = key === '_index' ? (row.index + 1)
           : filter ? filter(row, col, rowIndex) : row[key];
         this.drawCellText({
           label,
@@ -423,7 +423,9 @@ export default class CanvasTable extends Drawer {
   }
 
   private onClick = (e: MouseEvent) => {
-    const { columns, onCellClick, scrollX, maxScrollX, canvas, fixedLeftWidth, fixedRightWidth } = this;
+    const { data, columns, onCellClick, scrollX, maxScrollX, scrollY, canvas, fixedLeftWidth, fixedRightWidth,
+      headerHight, maxHeaderDepth, rowHeights,
+    } = this;
 
     if (onCellClick && typeof onCellClick === 'function') {
       const { offsetX, offsetY } = e;
@@ -437,7 +439,7 @@ export default class CanvasTable extends Drawer {
 
       /** 实际距离canvas左侧距离 */
       let actualLeft = offsetX;
-      /** 点击右侧fixed区域 需要加上滚动隐藏部门 */
+      /** 点击右侧fixed区域 需要加上滚动隐藏部分 */
       if (offsetX > canvas.width - fixedRightWidth) {
         actualLeft += maxScrollX;
       } else if (offsetX > fixedLeftWidth) {
@@ -448,9 +450,24 @@ export default class CanvasTable extends Drawer {
       const col = _columns.find(c =>
         actualLeft > (c._left as number) &&
         actualLeft < (c._left as number) + (c._realWidth as number)
-      )
-      
-      console.log(col);
+      );
+
+      const actualTop = offsetY - (headerHight * maxHeaderDepth) + scrollY;
+      const rowIndex = data.findIndex((_, i) => {
+        const { height, top } = rowHeights[i];
+        return actualTop > top && actualTop < (top + height);
+      });
+      if (rowIndex === -1 || !col) return
+      const row = data[rowIndex];
+      const { height: rowHeight, top } = rowHeights[rowIndex];
+      onCellClick({
+        row,
+        col,
+        left: (col._left as number),
+        width: (col._realWidth as  number),
+        top,
+        height: rowHeight,
+      })
     }
   }
 

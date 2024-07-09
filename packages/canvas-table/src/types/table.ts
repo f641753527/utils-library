@@ -43,7 +43,7 @@ export interface TableWrapperConstructor extends ITableAttrs {
   el: string;
 }
 /** 单元格点击事件 */
-export type tableCellClickEvent =  (c: { row: IAnyStructure; key: string; left: number; width: number; }) => void;
+export type tableCellClickEvent =  (c: { row: IAnyStructure; col: IColumnProps; left: number; width: number; top: number; height: number; }) => void;
 /** 表格滚动事件 */
 export type tableWheelEvent =  (scrollDistance: number, maxScrollDistance: number) => void;
 /** canvas-table 构造器 */
