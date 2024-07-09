@@ -4,7 +4,7 @@ import type {
   IAnyStructure,
   tableWheelEvent,
   TRowHeight,
-  tableCellClickEvent
+  tableCellMouseEventFunc
 } from '../types';
 import { POSITION } from '../types'
 import { style } from './const';
@@ -20,8 +20,8 @@ export default class CanvasTable extends Drawer {
   private _canvas: HTMLCanvasElement;
   private _clientWidth: number = 0;
 
-  private columns: IColumnProps[] = [];
-  private data: IAnyStructure[] = [];
+  private _columns: IColumnProps[] = [];
+  private _data: IAnyStructure[] = [];
   /** 初始传入高度 */
   private initialHeight: number;
   /** canvas body 实际高度 */
@@ -31,9 +31,9 @@ export default class CanvasTable extends Drawer {
   private _headerHight: number = 0;
   private rowHeight: TRowHeight;
   /** 记录每一行的高度信息 */
-  private rowHeights: IRowPosInfo[] = [];
+  private _rowHeights: IRowPosInfo[] = [];
   /** 表头最大深度 */
-  private maxHeaderDepth: number = 1;
+  private _maxHeaderDepth: number = 1;
 
   /** 左侧fixed列总宽度 */
   private _fixedLeftWidth: number = 0;
@@ -45,17 +45,18 @@ export default class CanvasTable extends Drawer {
   private _maxScrollY: number = 0;
 
   private onCanvasWheel?: tableWheelEvent;
-  private onCellClick?: tableCellClickEvent;
+  private onCellClick?: tableCellMouseEventFunc;
+  private onCellMove?: tableCellMouseEventFunc;
 
   constructor(config: TableConstructor) {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext("2d") as CanvasRenderingContext2D;
     super(context);
 
-    const { data, columns, height, rowHeight, headerHight, onWheel, onCellClick } = config;
+    const { data, columns, height, rowHeight, headerHight, onWheel, onCellClick, onCellMove } = config;
     this._canvas = canvas;
-    this.columns = columns;
-    this.data = data;
+    this._columns = columns;
+    this._data = data;
     this.initialHeight = height as number;
     this._headerHight = (headerHight as number);
     this.rowHeight = rowHeight as TRowHeight;
@@ -67,6 +68,9 @@ export default class CanvasTable extends Drawer {
     }
     if (onCellClick) {
       this.onCellClick = onCellClick;
+    }
+    if (onCellMove) {
+      this.onCellMove = onCellMove;
     }
 
     this.initEvents();
@@ -121,6 +125,30 @@ export default class CanvasTable extends Drawer {
   }
   get height() {
     return this._height;
+  }
+  get data() {
+    return this._data;
+  }
+  set data(data: IAnyStructure[]) {
+    this._data = data;
+  }
+  get columns() {
+    return this._columns;
+  }
+  set columns(columns: IColumnProps[]) {
+    this._columns = columns;
+  }
+  get maxHeaderDepth() {
+    return this._maxHeaderDepth;
+  }
+  set maxHeaderDepth(maxHeaderDepth: number) {
+    this._maxHeaderDepth = maxHeaderDepth;
+  }
+  get rowHeights() {
+    return this._rowHeights;
+  }
+  set rowHeights(rowHeights: IRowPosInfo[]) {
+    this._rowHeights = rowHeights;
   }
 
   init() {
@@ -386,10 +414,12 @@ export default class CanvasTable extends Drawer {
   private initEvents = () => {
     this.canvas.addEventListener('wheel', this.onWheel, { passive: false });
     this.canvas.addEventListener('click', this.onClick);
+    this.canvas.addEventListener('mousemove', this.onMouseMove);
 
     window.onbeforeunload = () => {
       this.canvas.removeEventListener('wheel', this.onWheel);
       this.canvas.removeEventListener('click', this.onClick);
+      this.canvas.removeEventListener('mousemove', this.onMouseMove);
     }
   }
 
@@ -422,53 +452,21 @@ export default class CanvasTable extends Drawer {
     }
   }
 
+  /** 点击事件 */
   private onClick = (e: MouseEvent) => {
-    const { data, columns, onCellClick, scrollX, maxScrollX, scrollY, canvas, fixedLeftWidth, fixedRightWidth,
-      headerHight, maxHeaderDepth, rowHeights,
-    } = this;
-
-    if (onCellClick && typeof onCellClick === 'function') {
-      const { offsetX, offsetY } = e;
-
-      const _columns: IColumnProps[] = [];
-      LodashUtils.BFS(columns, { callback: (col, depth) => {
-        if (!col.children || !col.children.length) {
-          _columns.push(col as IColumnProps);
-        }
-      }});
-
-      /** 实际距离canvas左侧距离 */
-      let actualLeft = offsetX;
-      /** 点击右侧fixed区域 需要加上滚动隐藏部分 */
-      if (offsetX > canvas.width - fixedRightWidth) {
-        actualLeft += maxScrollX;
-      } else if (offsetX > fixedLeftWidth) {
-        /** 点击中间部门 需要加上滚动距离 */
-        actualLeft += scrollX;
-      }
-
-      const col = _columns.find(c =>
-        actualLeft > (c._left as number) &&
-        actualLeft < (c._left as number) + (c._realWidth as number)
-      );
-
-      const actualTop = offsetY - (headerHight * maxHeaderDepth) + scrollY;
-      const rowIndex = data.findIndex((_, i) => {
-        const { height, top } = rowHeights[i];
-        return actualTop > top && actualTop < (top + height);
-      });
-      if (rowIndex === -1 || !col) return
-      const row = data[rowIndex];
-      const { height: rowHeight, top } = rowHeights[rowIndex];
-      onCellClick({
-        row,
-        col,
-        left: (col._left as number),
-        width: (col._realWidth as  number),
-        top,
-        height: rowHeight,
-      })
+    const cell = TableUtils.getMouseEventCell(e, this);
+    const { onCellClick } = this;
+    if (onCellClick && typeof onCellClick === 'function' && cell) {
+      onCellClick(cell);
     }
   }
 
+  /** 鼠标移动事件 */
+  private onMouseMove = LodashUtils.throttle((e: MouseEvent) => {
+    const cell = TableUtils.getMouseEventCell(e, this);
+    const { onCellMove } = this;
+    if (onCellMove && typeof onCellMove === 'function' && cell) {
+      onCellMove(cell);
+    }
+  }, 60)
 }

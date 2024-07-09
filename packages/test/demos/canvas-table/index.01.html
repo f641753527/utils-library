@@ -48,7 +48,8 @@
       columns,
       height: 360,
       rowHeight: (row) => ~~(Math.random() * 60 + 20),
-      onCellClick: (e) => { console.log(e) }
+      onCellClick: (e) => { console.log(e) },
+      // onCellMove: (e) => { console.log(e) },
     })
 
     getData().then(res => {

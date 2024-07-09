@@ -1,5 +1,6 @@
 import Table from '../core/Table';
-import type { IAnyStructure, IColumnProps } from '../types';
+import { LodashUtils } from './LodashUtils';
+import type { IAnyStructure, IColumnProps, ITableCellMouseEvent } from '../types';
 
 /** 行数据 位置信息 */
 export interface IRowPosInfo {
@@ -52,5 +53,55 @@ export class TableUtils {
             });
         }
         return result;
+    }
+
+    /** 获取鼠标事件对应的单元格 */
+    public static getMouseEventCell(e: MouseEvent, context: Table): ITableCellMouseEvent | null {
+        const { data, columns, scrollX, maxScrollX, scrollY, canvas, fixedLeftWidth, fixedRightWidth,
+            headerHight, maxHeaderDepth, rowHeights,
+        } = context;
+    
+        const { offsetX, offsetY } = e;
+    
+        const _columns: IColumnProps[] = [];
+        LodashUtils.BFS(columns, { callback: (col, depth) => {
+            if (!col.children || !col.children.length) {
+                _columns.push(col as IColumnProps);
+            }
+        }});
+    
+        /** 实际距离canvas左侧距离 */
+        let actualLeft = offsetX;
+        /** 点击右侧fixed区域 需要加上滚动隐藏部分 */
+        if (offsetX > canvas.width - fixedRightWidth) {
+            actualLeft += maxScrollX;
+        } else if (offsetX > fixedLeftWidth) {
+            /** 点击中间部门 需要加上滚动距离 */
+            actualLeft += scrollX;
+        }
+    
+        const col = _columns.find(c =>
+            actualLeft > (c._left as number) &&
+            actualLeft < (c._left as number) + (c._realWidth as number)
+        );
+    
+        const actualTop = offsetY - (headerHight * maxHeaderDepth) + scrollY;
+        const rowIndex = data.findIndex((_, i) => {
+            const { height, top } = rowHeights[i];
+            return actualTop > top && actualTop < (top + height);
+        });
+        if (rowIndex === -1 || !col) return null;
+        const row = data[rowIndex];
+        const { height: rowHeight, top } = rowHeights[rowIndex];
+        return {
+            row,
+            col,
+            left: (col._left as number),
+            width: (col._realWidth as  number),
+            top: top + headerHight * maxHeaderDepth,
+            height: rowHeight,
+            scrollX: scrollX,
+            scrollY: scrollY,
+        }
     }
 }

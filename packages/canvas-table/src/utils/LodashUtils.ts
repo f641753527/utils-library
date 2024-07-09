@@ -21,7 +21,7 @@ export class LodashUtils {
 
     public static readonly DEFAULT_OPTIONS: IConfig = { leading: true, trailing: true };
 
-    public static throttle(fn: Function, interval = 200, config?: IConfig): Function {
+    public static throttle(fn: any, interval = 200, config?: IConfig): typeof fn {
         const options = Object.assign({}, LodashUtils.DEFAULT_OPTIONS, config || {})
         let timer: number | null;
         let previous = 0;
@@ -38,13 +38,13 @@ export class LodashUtils {
                     timer = null;
                 }
                 previous = now;
-                fn.apply(this, ...args);
+                fn.apply(this, args);
             } else if (!timer && options.trailing !== false) {
                 /** 添加定时器 结束时触发 */
                 timer = setTimeout(() => {
                     previous = options.leading === false ? 0 : new Date().getTime();
                     timer = null;
-                    fn.apply(this, ...args);
+                    fn.apply(this, args);
                 }, remaining);
             }
         }

@@ -35,15 +35,29 @@ export interface ITableAttrs {
   /** 是否显示索引列 */
   index?: boolean;
   /** 单元格点击事件 */
-  onCellClick?: tableCellClickEvent;
+  onCellClick?: tableCellMouseEventFunc;
+  /** 单元格鼠标移动事件 */
+  onCellMove?: tableCellMouseEventFunc;
 }
 
 /** canvas-table wrapper 构造器 */
 export interface TableWrapperConstructor extends ITableAttrs {
   el: string;
 }
+
+export interface ITableCellMouseEvent {
+  row: IAnyStructure;
+  col: IColumnProps;
+  left: number;
+  width: number;
+  top: number;
+  height: number;
+  scrollX: number;
+  scrollY: number;
+}
+
 /** 单元格点击事件 */
-export type tableCellClickEvent =  (c: { row: IAnyStructure; col: IColumnProps; left: number; width: number; top: number; height: number; }) => void;
+export type tableCellMouseEventFunc =  (ev: ITableCellMouseEvent) => void;
 /** 表格滚动事件 */
 export type tableWheelEvent =  (scrollDistance: number, maxScrollDistance: number) => void;
 /** canvas-table 构造器 */

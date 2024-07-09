@@ -24,7 +24,7 @@ export default class CanvasTableWrapper {
       direction: EnumScrollBarDirection.VERTICAL,
       onDrag: this.onScrollBarYDrag,
     });
-    /***/
+    /** 横向滚动条 */
     this.scrollBarX = new ScrollBar({
       direction: EnumScrollBarDirection.HORIZONTAL,
       onDrag: this.onScrollBarXDrag,
@@ -162,7 +162,7 @@ export default class CanvasTableWrapper {
     window.addEventListener('resize', this.onResize);
 
     window.onbeforeunload = () => {
-      window.removeEventListener('wheel', this.onResize);
+      window.removeEventListener('resize', this.onResize);
     }
   }
 
