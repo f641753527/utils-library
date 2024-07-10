@@ -95,7 +95,7 @@ export default class Drawer {
       const { iconColor, iconFamily, iconSize, padding } = (iconStyle || style) as Required<IStyle>;
       ctx.font = `${fontWeight} ${iconSize}px ${iconFamily}`;
       ctx.fillStyle = iconColor;
-      const left = direction === 'left' ? x + padding[3] : x + maxDrawWidth + padding[3];
+      const left = direction === 'left' ? x + padding[3] : x + (isOver ? maxDrawWidth : textWidth) + padding[3];
       ctx.fillText(
         String.fromCharCode(parseInt(iconText.replace('&#x', ''), 16)),
         left, y + iconSize + (height - iconSize) / 2);
