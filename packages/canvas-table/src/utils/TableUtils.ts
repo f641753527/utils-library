@@ -12,8 +12,7 @@ export interface IRowPosInfo {
 export class TableUtils {
 
     /** 获取列基于canvas的实际位置 */
-    public static getColumnActualLeft(column: IColumnProps, table: Table, pos?: 'left' | 'right') {
-        const { maxScrollX, scrollX } = table;
+    public static getColumnActualLeft(column: IColumnProps, scrollX: number, maxScrollX: number, pos?: 'left' | 'right') {
         const left = column._left as number;
         return pos === 'left' ? left
             : pos === 'right' ? left - maxScrollX
@@ -60,14 +59,17 @@ export class TableUtils {
         const { data, columns, scrollX, maxScrollX, scrollY, canvas, fixedLeftWidth, fixedRightWidth,
             headerHight, maxHeaderDepth, rowHeights,
         } = context;
-    
+
         const { offsetX, offsetY } = e;
-    
+
+        /** 表头总高度 */
+        const headerTotalHeight = headerHight * maxHeaderDepth;
+        /** 事件是否触发在表头 */
+        const isOverHeader = offsetY < headerTotalHeight;
+
         const _columns: IColumnProps[] = [];
         LodashUtils.BFS(columns, { callback: (col, depth) => {
-            if (!col.children || !col.children.length) {
-                _columns.push(col as IColumnProps);
-            }
+            _columns.push(col as IColumnProps);
         }});
     
         /** 实际距离canvas左侧距离 */
@@ -82,26 +84,42 @@ export class TableUtils {
     
         const col = _columns.find(c =>
             actualLeft > (c._left as number) &&
-            actualLeft < (c._left as number) + (c._realWidth as number)
+            actualLeft < (c._left as number) + (c._realWidth as number) &&
+            /** 事件在表头 则需要判断左右位置 还要判断上下位置 */
+            (isOverHeader
+                ? (offsetY > (c._top as number) && offsetY < (c._top as number) + 
+                    (c.children && c.children.length ? headerHight : c._height as number))
+                /** 事件在body 则找叶子节点 */
+                : (!c.children || !c.children.length)
+            )
         );
     
-        const actualTop = offsetY - (headerHight * maxHeaderDepth) + scrollY;
+        const actualTop = offsetY - headerTotalHeight + scrollY;
         const rowIndex = data.findIndex((_, i) => {
             const { height, top } = rowHeights[i];
             return actualTop > top && actualTop < (top + height);
         });
-        if (rowIndex === -1 || !col) return null;
+        if (!col) return null;
+        if (isOverHeader) {
+            return {
+                isHeader: true,
+                col,
+                left: TableUtils.getColumnActualLeft(col, scrollX, maxScrollX, col.fixed),
+                width: (col._realWidth as  number),
+                top: col._top as number,
+                height: col._height as number,
+            }
+        }
+        if (rowIndex === -1) return null;
         const row = data[rowIndex];
-        const { height: rowHeight, top } = rowHeights[rowIndex];
+        const { height, top } = rowHeights[rowIndex];
         return {
             row,
             col,
-            left: (col._left as number),
+            left: TableUtils.getColumnActualLeft(col, scrollX, maxScrollX, col.fixed),
             width: (col._realWidth as  number),
-            top: top + headerHight * maxHeaderDepth,
-            height: rowHeight,
-            scrollX: scrollX,
-            scrollY: scrollY,
+            top: top + headerTotalHeight - scrollY,
+            height,
         }
     }
 }

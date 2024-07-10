@@ -1,7 +1,15 @@
-import { TableWrapperConstructor, ITableAttrs, EnumScrollBarDirection, IAnyStructure } from '../types';
 import Table from './Table';
 import ScrollBar from './ScrollBar';
 import { defaultTableAttrs } from './const';
+import TooltipComponent from './Tooltip'
+import { EnumScrollBarDirection } from '../types'
+import type {
+  TableWrapperConstructor,
+  ITableAttrs,
+  IAnyStructure,
+  tableCellMouseEventFunc,
+  ITableCellMouseEvent,
+} from '../types';
 
 export default class CanvasTableWrapper {
   private querySelector: string;
@@ -10,6 +18,13 @@ export default class CanvasTableWrapper {
   private table: Table;
   private scrollBarY: ScrollBar;
   private scrollBarX: ScrollBar;
+
+  /** 气泡 */
+  private tooltipInstance: TooltipComponent | null = null;
+
+  /** 鼠标事件 */
+  private onCellClick?: tableCellMouseEventFunc;
+  private onCellMove?: tableCellMouseEventFunc;
 
   constructor(options: TableWrapperConstructor) {
     let { el, ...tableAttrs } = options;
@@ -35,12 +50,22 @@ export default class CanvasTableWrapper {
       ...tableAttrs,
     }
 
+    const { onCellClick, onCellMove } = tableAttrs;
+    if (onCellClick) {
+      this.onCellClick = onCellClick;
+    }
+    if (onCellMove) {
+      this.onCellMove = onCellMove;
+    }
+
     this.initSetting(combinedTableAttrs);
 
     /** 表格实例 */
     this.table = new Table({
       ...combinedTableAttrs,
       onWheel: this.onCanvasWheel,
+      onCellClick: this.onCanvasCellClick,
+      onCellMove: this.onCanvasCellMove,
     });
 
     this.onMount();
@@ -156,6 +181,43 @@ export default class CanvasTableWrapper {
   private onCanvasWheel = (scrollDistance: number, maxScrollDistance: number) => {
     const { outerLength, innerLength } = this.scrollBarY;
     this.scrollBarY.offset = (scrollDistance / (maxScrollDistance || Infinity)) * (outerLength - innerLength);
+  }
+
+  private onCanvasCellClick = (cell: ITableCellMouseEvent | null) => {
+    const { onCellClick } = this;
+    if (cell && onCellClick && typeof onCellClick === 'function') {
+      onCellClick(cell);
+    }
+  }
+
+  private onCanvasCellMove = (cell: ITableCellMouseEvent | null) => {
+    this.handleTooltip(cell);
+    if (!cell) return
+    const { isHeader, ...config } = cell;
+    const { onCellMove } = this;
+    /** 表格body触发才抛出事件 */
+    if (!isHeader && onCellMove && typeof onCellMove === 'function') {
+      onCellMove(config);
+    }
+  }
+
+  /** 处理显示气泡 */
+  private handleTooltip(cell: ITableCellMouseEvent | null) {
+    if (cell === null) {
+      if (this.tooltipInstance) {
+        this.tooltipInstance.hide();
+      }
+      return;
+    }
+    const { isHeader, row, col, left, top } = cell;
+    const content = isHeader === true ? col.headerTooltip : '';
+    if (content) {
+      const _left = left + (col._realWidth as number) / 2;
+      const _top = top + (col._height as number);
+      this.tooltipInstance = TooltipComponent.getInstance(this.tableWrapper as HTMLElement, content, _left, _top);
+    } else if (this.tooltipInstance) {
+      // this.tooltipInstance.hide();
+    }
   }
 
   private initEvents() {

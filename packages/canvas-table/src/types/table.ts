@@ -48,18 +48,20 @@ export interface TableWrapperConstructor extends ITableAttrs {
 }
 
 export interface ITableCellMouseEvent {
-  row: IAnyStructure;
+  /** 是否触发在表头 */
+  isHeader?: boolean;
+  row?: IAnyStructure;
   col: IColumnProps;
+  /** 距离canvas左侧距离 */
   left: number;
   width: number;
+  /** 距离canvas顶部距离 */
   top: number;
   height: number;
-  scrollX: number;
-  scrollY: number;
 }
 
 /** 单元格点击事件 */
-export type tableCellMouseEventFunc =  (ev: ITableCellMouseEvent) => void;
+export type tableCellMouseEventFunc =  (ev: ITableCellMouseEvent | null) => void;
 /** 表格滚动事件 */
 export type tableWheelEvent =  (scrollDistance: number, maxScrollDistance: number) => void;
 /** canvas-table 构造器 */

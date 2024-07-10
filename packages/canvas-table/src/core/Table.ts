@@ -46,8 +46,8 @@ export default class CanvasTable extends Drawer {
   private _maxScrollY: number = 0;
 
   private onCanvasWheel?: tableWheelEvent;
-  private onCellClick?: tableCellMouseEventFunc;
-  private onCellMove?: tableCellMouseEventFunc;
+  private onCanvasCellClick?: tableCellMouseEventFunc;
+  private onCanvasCellMove?: tableCellMouseEventFunc;
 
   constructor(config: TableConstructor) {
     const canvas = document.createElement('canvas');
@@ -68,10 +68,10 @@ export default class CanvasTable extends Drawer {
       this.onCanvasWheel = onWheel;
     }
     if (onCellClick) {
-      this.onCellClick = onCellClick;
+      this.onCanvasCellClick = onCellClick;
     }
     if (onCellMove) {
-      this.onCellMove = onCellMove;
+      this.onCanvasCellMove = onCellMove;
     }
 
     this.initEvents();
@@ -312,7 +312,7 @@ export default class CanvasTable extends Drawer {
   }
   /** 绘制表头 */
   drawHeader(type?: 'left' | 'right') {
-    const { headerHight, columns: _columns } = this;
+    const { headerHight, columns: _columns, scrollX, maxScrollX } = this;
 
     const headerStyle = { ...style, ...style.header } as Required<IStyle>;
     const { padding } = headerStyle;
@@ -322,7 +322,7 @@ export default class CanvasTable extends Drawer {
     });
     const eachColumns = (cols: IColumnProps[]) => {
       for (const col of cols) {
-        const x = TableUtils.getColumnActualLeft(col, this, type);
+        const x = TableUtils.getColumnActualLeft(col, scrollX, maxScrollX, type);
         const width = col._realWidth as number;
         const y = (col._top as number);
         const height = (col._height as number);
@@ -369,7 +369,7 @@ export default class CanvasTable extends Drawer {
   }
   /** 绘制body */
   drawBody(type?: 'left' | 'right') {
-    const { columns: _columns, scrollY, height, rowHeights, data } = this;
+    const { columns: _columns, scrollY, height, rowHeights, data, scrollX, maxScrollX } = this;
 
     const tableData = TableUtils.getScreenRows(scrollY, height, rowHeights, data);
 
@@ -390,7 +390,7 @@ export default class CanvasTable extends Drawer {
     tableData.forEach((row, rowIndex) => {
       columns.forEach((col, i) => {
         const { key, filter, align, _realWidth, _top, _height } = col;
-        const x = TableUtils.getColumnActualLeft(col, this, type);
+        const x = TableUtils.getColumnActualLeft(col, scrollX, maxScrollX, type);
         const width = _realWidth as number;
         const { height, top } = rowHeights[row.index];
         const y = (_top as number) + (_height as number) + (top - scrollY);
@@ -464,18 +464,27 @@ export default class CanvasTable extends Drawer {
   /** 点击事件 */
   private onClick = (e: MouseEvent) => {
     const cell = TableUtils.getMouseEventCell(e, this);
-    const { onCellClick } = this;
-    if (onCellClick && typeof onCellClick === 'function' && cell) {
-      onCellClick(cell);
+    const { onCanvasCellClick } = this;
+    if (onCanvasCellClick && typeof onCanvasCellClick === 'function' && cell) {
+      onCanvasCellClick(cell);
     }
   }
 
   /** 鼠标移动事件 */
   private onMouseMove = LodashUtils.throttle((e: MouseEvent) => {
-    const cell = TableUtils.getMouseEventCell(e, this);
-    const { onCellMove } = this;
-    if (onCellMove && typeof onCellMove === 'function' && cell) {
-      onCellMove(cell);
-    }
+    const targetCell = TableUtils.getMouseEventCell(e, this);
+    const onCanvasCellMove = this.onCanvasCellMove;
+      if (onCanvasCellMove && typeof onCanvasCellMove === 'function') {
+        onCanvasCellMove(targetCell);
+      }
+    // this.handleTooltip(targetCell);
+    // if (!targetCell) return
+    // const { isHeader, ...config } = targetCell;
+    // const { onCellMove } = this;
+    // /** 表格body触发才抛出事件 */
+    // if (!isHeader && onCellMove && typeof onCellMove === 'function') {
+    //   onCellMove(config);
+    // }
   }, 60)
+
 }
