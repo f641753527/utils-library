@@ -6,7 +6,6 @@
     border-radius: 4px;
     border: 1px solid #ebeef5;
     box-shadow: 0 2px 12px 0 rgba(0, 0, 0, .1);
-    // word-break: break-all;
     &__arrow{
         position: absolute;
         left: 50%;
@@ -23,7 +22,6 @@
         }
     }
     &[x-placement^=bottom] {
-        margin-top: 6px;
         .canvas-table--tooltip__arrow{
             top: 0;
             transform: translate(-50%, -100%);
@@ -34,6 +32,22 @@
                 top: 1px;
                 transform: translate(-50%, 0);
                 border-top-width: 0;
+                border-left-color: transparent;
+                border-right-color: transparent;
+            }
+        }
+    }
+    &[x-placement^=top] {
+        .canvas-table--tooltip__arrow{
+            bottom: 0;
+            transform: translate(-50%, 100%);
+            border-bottom-width: 0;
+            border-left-color: transparent;
+            border-right-color: transparent;
+            &::before {
+                bottom: 1px;
+                transform: translate(-50%, 0);
+                border-bottom-width: 0;
                 border-left-color: transparent;
                 border-right-color: transparent;
             }

@@ -1,7 +1,7 @@
 import Table from './Table';
 import ScrollBar from './ScrollBar';
 import { defaultTableAttrs } from './const';
-import TooltipComponent from './Tooltip'
+import Tooltip from './Tooltip'
 import { EnumScrollBarDirection } from '../types'
 import type {
   TableWrapperConstructor,
@@ -20,7 +20,7 @@ export default class CanvasTableWrapper {
   private scrollBarX: ScrollBar;
 
   /** 气泡 */
-  private tooltipInstance: TooltipComponent | null = null;
+  private tooltipIns: Tooltip | null = null;
 
   /** 鼠标事件 */
   private onCellClick?: tableCellMouseEventFunc;
@@ -204,27 +204,42 @@ export default class CanvasTableWrapper {
   /** 处理显示气泡 */
   private handleTooltip(cell: ITableCellMouseEvent | null) {
     if (cell === null) {
-      if (this.tooltipInstance) {
-        this.tooltipInstance.hide();
+      if (this.tooltipIns) {
+        this.tooltipIns.hide();
       }
       return;
     }
     const { isHeader, row, col, left, top } = cell;
     const content = isHeader === true ? col.headerTooltip : '';
     if (content) {
-      const _left = left + (col._realWidth as number) / 2;
-      const _top = top + (col._height as number);
-      this.tooltipInstance = TooltipComponent.getInstance(this.tableWrapper as HTMLElement, content, _left, _top);
-    } else if (this.tooltipInstance) {
-      // this.tooltipInstance.hide();
+      const { tableWrapper, table } = this;
+      const { headerHight } = table;
+
+      if (!tableWrapper) return;
+      this.tooltipIns = Tooltip.getInstance();
+      this.tooltipIns.init();
+      this.tooltipIns.setState({
+        content,
+        top: tableWrapper.offsetTop + top,
+        left: tableWrapper.offsetLeft + left,
+        parentWidth: col._realWidth as number,
+        parentHeight: col.children && col.children.length ? headerHight : col._height,
+      })
+      this.tooltipIns.show();
+    } else if (this.tooltipIns) {
+      this.tooltipIns.hide();
     }
   }
 
   private initEvents() {
+    const { tableWrapper } = this;
+    if (!tableWrapper) return;
     window.addEventListener('resize', this.onResize);
+    tableWrapper.addEventListener('mouseleave', this.onMouseLeave),
 
     window.onbeforeunload = () => {
       window.removeEventListener('resize', this.onResize);
+      tableWrapper.removeEventListener('mouseleave', this.onMouseLeave);
     }
   }
 
@@ -238,6 +253,13 @@ export default class CanvasTableWrapper {
     el.parentElement?.removeChild(el);
     this.setWrapperSize();
     this.initScrollBarX();
+  }
+
+  private onMouseLeave = () => {
+    if (this.tooltipIns) {
+      this.tooltipIns.remove();
+      this.tooltipIns = null;
+    }
   }
 
   public setData(data: IAnyStructure[]) {

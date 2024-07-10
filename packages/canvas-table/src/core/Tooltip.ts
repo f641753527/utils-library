@@ -1,34 +1,37 @@
+import { Singleton } from '../utils'
+
 const tooltipClassName = 'canvas-table--tooltip';
 
+interface ITooltipState {
+    left?: number;
+    top?: number;
+    content?: string;
+    parentWidth?: number;
+    parentHeight?: number;
+    postion?: 'top' | 'bottom';
+}
+
 /** 气泡 */
-export default class TooltipComponent {
+export default class Tooltip extends Singleton {
 
-    static singleIns: TooltipComponent | null;
+    private tooltipDomEl: HTMLElement | null = null;
 
-    static parent: HTMLElement;
-    static tooltipDomEl: HTMLElement | null = null;
-    static content: string;
-    static left: number;
-    static top: number;
-    static postion: 'top' | 'bottom' = 'bottom';
+    private left: number = 0;
+    private top: number = 0;
+    private content: string = '';
+    /** 依附定位元素的宽 */
+    private parentWidth: number = 0;
+    private parentHeight: number = 0;
+    private postion: 'top' | 'bottom' = 'bottom';
 
-    private constructor(parent: HTMLElement) {
-        TooltipComponent.parent = parent;
+    constructor() {
+        super();
+        this.init();
     }
 
-    public static getInstance(parent: HTMLElement, content: string, left: number, top: number, postion?: 'top' | 'bottom') {
-        if (!TooltipComponent.singleIns) {
-            TooltipComponent.singleIns = new TooltipComponent(parent);
-            TooltipComponent.singleIns.init();
-        }
-        TooltipComponent.singleIns.setState(content, left, top, postion);
-        TooltipComponent.singleIns.show();
-        return TooltipComponent.singleIns;
-    }
-
-    private init() {
+    public init() {
+        if (this.tooltipDomEl) return;
         const tooltipDomEl = document.createElement('div');
-        tooltipDomEl.setAttribute('x-placement', TooltipComponent.postion);
         tooltipDomEl.style.display = 'none';
         tooltipDomEl.className = tooltipClassName;
         const tooltipArrowEl = document.createElement('div');
@@ -40,40 +43,51 @@ export default class TooltipComponent {
         tooltipDomEl.appendChild(tooltipContentEl);
         tooltipDomEl.appendChild(tooltipArrowEl);
 
-        TooltipComponent.tooltipDomEl = tooltipDomEl;
-        // TooltipComponent.parent.appendChild(tooltipDomEl);
+        this.tooltipDomEl = tooltipDomEl;
         document.body.appendChild(tooltipDomEl);
     }
 
+
+
     public remove() {
-        TooltipComponent.tooltipDomEl?.parentNode?.removeChild(TooltipComponent.tooltipDomEl);
-        TooltipComponent.tooltipDomEl = null;
-        TooltipComponent.singleIns = null;
+        this.tooltipDomEl?.parentNode?.removeChild(this.tooltipDomEl);
+        setTimeout(() => {
+            this.tooltipDomEl = null;
+        }, 500);
     }
 
     public hide() {
-        if (TooltipComponent.tooltipDomEl === null) return;
-        TooltipComponent.tooltipDomEl.style.display = 'none';
+        if (this.tooltipDomEl === null) return;
+        this.tooltipDomEl.style.display = 'none';
     }
 
-    private setState(content: string, left: number, top: number, postion?: 'top' | 'bottom') {
-        TooltipComponent.content = content;
-        TooltipComponent.left = left;
-        TooltipComponent.top = top;
-        postion && (TooltipComponent.postion = postion);
+    public setState(state: ITooltipState) {
+        Object.keys(state).forEach((key) => {
+            ((this as any)[key]) = state[key as keyof ITooltipState];
+        })
     }
 
     public show() {
         setTimeout(() => {
-            if (!TooltipComponent.tooltipDomEl) return;
-            const contentEl = TooltipComponent.tooltipDomEl.querySelector('.' + tooltipClassName + '__content');
+            if (!this.tooltipDomEl) return;
+            const contentEl = this.tooltipDomEl.querySelector('.' + tooltipClassName + '__content');
             if (!contentEl) return;
-            contentEl.innerHTML = TooltipComponent.content;
-            console.log(contentEl.clientWidth, contentEl.clientHeight, 99)
-            TooltipComponent.tooltipDomEl.style.top = TooltipComponent.top + 'px';
-            TooltipComponent.tooltipDomEl.style.left = TooltipComponent.left + 'px';
-            TooltipComponent.tooltipDomEl.style.display = 'block';
-        }, 500)
+            const { left, top, content, parentWidth, parentHeight, postion } = this;
+
+            contentEl.innerHTML = content;
+            this.tooltipDomEl.setAttribute('x-placement', postion);
+
+            const width = contentEl.clientWidth + 16;
+            const height = contentEl.clientHeight + 16;
+
+            const _left = left + (parentWidth - width) / 2;
+            const _top = postion === 'top' ? top - height - 6 : top + parentHeight + 6;
+
+            this.tooltipDomEl.style.top = _top + 'px';
+            this.tooltipDomEl.style.left = _left + 'px';
+
+            this.tooltipDomEl.style.display = 'block';
+        }, 60);
     }
 
 }
