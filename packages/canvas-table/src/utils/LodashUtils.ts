@@ -70,4 +70,10 @@ export class LodashUtils {
         }
         dps(tree, 0);
     }
+
+    public static sleep(duration = 0) {
+        return new Promise(resolve => {
+            setTimeout(resolve, duration);
+        })
+    }
 }

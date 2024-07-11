@@ -114,6 +114,7 @@ export class TableUtils {
         const row = data[rowIndex];
         const { height, top } = rowHeights[rowIndex];
         return {
+            rowIndex,
             row,
             col,
             left: TableUtils.getColumnActualLeft(col, scrollX, maxScrollX, col.fixed),

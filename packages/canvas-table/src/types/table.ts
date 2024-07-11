@@ -22,6 +22,7 @@ export interface IColumnProps {
   filter?: (row: IAnyStructure, col: IColumnProps, index: number) => string | number;
   /** 表头气泡 */
   headerTooltip?: string;
+  tooltip?: string | ((ev: ITableCellMouseEvent) => string);
 }
 
 export type TRowHeight = number | ((row: IAnyStructure, i: number) => number)
@@ -48,6 +49,7 @@ export interface TableWrapperConstructor extends ITableAttrs {
 }
 
 export interface ITableCellMouseEvent {
+  rowIndex?: number;
   /** 是否触发在表头 */
   isHeader?: boolean;
   row?: IAnyStructure;

@@ -1,4 +1,4 @@
-import { Singleton } from '../utils'
+import { Singleton, LodashUtils } from '../utils'
 
 const tooltipClassName = 'canvas-table--tooltip';
 
@@ -8,7 +8,7 @@ interface ITooltipState {
     content?: string;
     parentWidth?: number;
     parentHeight?: number;
-    postion?: 'top' | 'bottom';
+    position?: 'top' | 'bottom';
 }
 
 /** 气泡 */
@@ -22,7 +22,11 @@ export default class Tooltip extends Singleton {
     /** 依附定位元素的宽 */
     private parentWidth: number = 0;
     private parentHeight: number = 0;
-    private postion: 'top' | 'bottom' = 'bottom';
+    private position: 'top' | 'bottom' = 'top';
+
+    private visible: boolean = false;
+
+    private currentRanderKey: string = '';
 
     constructor() {
         super();
@@ -51,14 +55,16 @@ export default class Tooltip extends Singleton {
 
     public remove() {
         this.tooltipDomEl?.parentNode?.removeChild(this.tooltipDomEl);
+        this.visible = false;
         setTimeout(() => {
             this.tooltipDomEl = null;
-        }, 500);
+        }, 50);
     }
 
     public hide() {
         if (this.tooltipDomEl === null) return;
         this.tooltipDomEl.style.display = 'none';
+        this.visible = false;
     }
 
     public setState(state: ITooltipState) {
@@ -67,27 +73,47 @@ export default class Tooltip extends Singleton {
         })
     }
 
-    public show() {
-        setTimeout(() => {
-            if (!this.tooltipDomEl) return;
-            const contentEl = this.tooltipDomEl.querySelector('.' + tooltipClassName + '__content');
-            if (!contentEl) return;
-            const { left, top, content, parentWidth, parentHeight, postion } = this;
+    private generateUniqueKey() {
+        const { left, top, content, parentWidth, parentHeight, position } = this;
+        const originString = left + top + content + parentWidth + parentHeight + position;
+        return btoa(encodeURIComponent(originString));
+    }
 
-            contentEl.innerHTML = content;
-            this.tooltipDomEl.setAttribute('x-placement', postion);
+    public async show() {
+        if (this.visible === true && this.generateUniqueKey() === this.currentRanderKey) return;
+        if (!this.tooltipDomEl) return;
+        const contentEl = this.tooltipDomEl.querySelector('.' + tooltipClassName + '__content');
+        if (!contentEl) return;
+        const { left, top, content, parentWidth, parentHeight, position } = this;
 
-            const width = contentEl.clientWidth + 16;
-            const height = contentEl.clientHeight + 16;
+        contentEl.innerHTML = content;
+        this.tooltipDomEl.setAttribute('x-placement', position);
+        this.tooltipDomEl.style.display = 'block';
+        this.tooltipDomEl.style.opacity = '0';
 
-            const _left = left + (parentWidth - width) / 2;
-            const _top = postion === 'top' ? top - height - 6 : top + parentHeight + 6;
+        await LodashUtils.sleep(50);
+        if (!this.tooltipDomEl) return;
 
-            this.tooltipDomEl.style.top = _top + 'px';
-            this.tooltipDomEl.style.left = _left + 'px';
+        const width = contentEl.clientWidth + 16;
+        const height = contentEl.clientHeight + 16;
 
-            this.tooltipDomEl.style.display = 'block';
-        }, 60);
+        const _left = left + (parentWidth - width) / 2;
+        const _top = position === 'top' ? top - height - 6 : top + parentHeight + 6;
+
+        /** 顶部遮挡遮挡 */
+        if (_top < 0) {
+            this.setState({
+                position: 'bottom',
+            });
+            this.show();
+            return;
+        }
+        
+        this.tooltipDomEl.style.top = _top + 'px';
+        this.tooltipDomEl.style.left = _left + 'px';
+        this.tooltipDomEl.style.opacity = '1';
+        this.visible = true;
+        this.currentRanderKey = this.generateUniqueKey();
     }
 
 }

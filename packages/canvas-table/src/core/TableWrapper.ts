@@ -209,22 +209,26 @@ export default class CanvasTableWrapper {
       }
       return;
     }
-    const { isHeader, row, col, left, top } = cell;
-    const content = isHeader === true ? col.headerTooltip : '';
+    const { isHeader, row, rowIndex, col, left, top } = cell;
+    const tooltipGenerator = isHeader === true ? col.headerTooltip : col.tooltip;
+    const content = typeof tooltipGenerator === 'function' ? tooltipGenerator(cell) : tooltipGenerator;
     if (content) {
       const { tableWrapper, table } = this;
-      const { headerHight } = table;
+      const { headerHight, rowHeights } = table;
 
       if (!tableWrapper) return;
       this.tooltipIns = Tooltip.getInstance();
       this.tooltipIns.init();
+      const height = isHeader === true ? col.children && col.children.length ? headerHight : col._height
+        : rowHeights[rowIndex as number].height;
       this.tooltipIns.setState({
         content,
         top: tableWrapper.offsetTop + top,
         left: tableWrapper.offsetLeft + left,
         parentWidth: col._realWidth as number,
-        parentHeight: col.children && col.children.length ? headerHight : col._height,
-      })
+        parentHeight: height,
+        position: 'top',
+      });
       this.tooltipIns.show();
     } else if (this.tooltipIns) {
       this.tooltipIns.hide();

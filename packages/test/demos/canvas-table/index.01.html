@@ -24,7 +24,14 @@
     const Table = CanvasTable.default;
 
     const columns = [
-      { label: "姓名姓名姓名姓名姓名姓名姓名姓名", key: "name", width: 120, fixed: 'left', headerTooltip: '姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名', align: 'right' },
+      {
+        label: "姓名",
+        key: "name",
+        width: 120,
+        fixed: 'left',
+        headerTooltip: '2024-07-11 11:24:30 <br>+ git clone -b master --depth 1 <br>git@gitlab.phoenix.com.cn',
+        tooltip: ({ row }) => `<div><div>环比: ${row.name}</div><div>差值: ${row.age}</div></div>`
+      },
       { label: "年龄", key: "age", width: 120, align: 'right' },
       { label: "学校", key: "school", width: 120 },
       {
@@ -36,8 +43,8 @@
           { key: 'score3', label: '英语', width: 90 },
         ]
       },
-      { label: "性别", key: "gender", filter: row => row.gender === 1 ? '男' : '女', width: 120, headerTooltip: '姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名' },
-      { label: "操作", key: "options", minWidth: 120, fixed: 'right', headerTooltip: '姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名姓名' },
+      { label: "性别", key: "gender", filter: row => row.gender === 1 ? '男' : '女', width: 120, },
+      { label: "操作", key: "options", minWidth: 120, fixed: 'right' },
     ]
 
     let tableData = [];
