@@ -477,14 +477,6 @@ export default class CanvasTable extends Drawer {
       if (onCanvasCellMove && typeof onCanvasCellMove === 'function') {
         onCanvasCellMove(targetCell);
       }
-    // this.handleTooltip(targetCell);
-    // if (!targetCell) return
-    // const { isHeader, ...config } = targetCell;
-    // const { onCellMove } = this;
-    // /** 表格body触发才抛出事件 */
-    // if (!isHeader && onCellMove && typeof onCellMove === 'function') {
-    //   onCellMove(config);
-    // }
   }, 60)
 
 }

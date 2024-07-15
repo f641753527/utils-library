@@ -185,7 +185,7 @@ export default class CanvasTableWrapper {
 
   private onCanvasCellClick = (cell: ITableCellMouseEvent | null) => {
     const { onCellClick } = this;
-    if (cell && onCellClick && typeof onCellClick === 'function') {
+    if (cell && !cell.isHeader && onCellClick && typeof onCellClick === 'function') {
       onCellClick(cell);
     }
   }
