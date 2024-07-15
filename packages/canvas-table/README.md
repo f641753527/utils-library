@@ -162,3 +162,38 @@ watch(data, () => {
 ### 效果图
 
 ![效果图](https://github.com/f641753527/utils-library/blob/master/packages/canvas-table/public/static/screen.jpg)
+
+### 用法
+**Props**
+| 属性      | 说明          | 类型         | 默认值          |
+|-----------|--------------|--------------|:--------------:|
+| el | 挂在节点 | String | - |
+| data | 渲染组件数据 | Array | - |
+| column | 渲染组件表格列 | Array | - |
+| height | 渲染组件高度 | number | - |
+| rowHeight | 行高 |  number 、 row => number | - |
+
+**events**
+| 事件名称      | 说明          | 回调参数         |
+|-----------|--------------|--------------|
+| onCellClick | 鼠标点击单元格时触发该事件 |  cell  |
+| onCellMove | 鼠标移动事件 |    |
+
+**Methods **
+| 方法名称      | 说明          | 参数         |
+|-----------|--------------|--------------|
+| setData | 重新设置表格渲染数据 |  cell  |
+| setColumns | 重新设置表格列 |    |
+
+
+**Props.column 配置说明（自定义列配置）**
+| 属性      | 说明          | 类型         | 默认值          |
+|-----------|--------------|--------------|:--------------:|
+| show | 是否显示列 | Boolean | false |
+| label | 列中文名 | String | - |
+| key | 列字段名 | String | - |
+| width | 列宽 | number | - |
+| fixed | 是否固定列 | "left" \| "right" | - |
+| headerTooltip | 表头气泡 | string \| () => string | - |
+| tooltip | 单元格气泡 | string \| ({ row }) => string | - |
+
