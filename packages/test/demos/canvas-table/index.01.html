@@ -17,6 +17,7 @@
   <script src="../../node_modules/@phoenix_fan/canvas-table/lib/index.umd.js" ></script>
 </head>
 <body>
+  <button class="btn1">隐藏姓名列</button>
   <div id="app"></div>
 
   <script>
@@ -25,6 +26,7 @@
 
     const columns = [
       {
+        show: true,
         label: "姓名",
         key: "name",
         width: 120,
@@ -32,24 +34,25 @@
         headerTooltip: '2024-07-11 11:24:30 <br>+ git clone -b master --depth 1 <br>git@gitlab.phoenix.com.cn',
         tooltip: ({ row }) => `<div><div>环比: ${row.name}</div><div>差值: ${row.age}</div></div>`
       },
-      { label: "年龄", key: "age", width: 120, align: 'right' },
-      { label: "学校", key: "school", width: 120 },
+      { show: true, label: "年龄", key: "age", width: 120, align: 'right' },
+      { show: true, label: "学校", key: "school", width: 120 },
       {
+        show: true,
         label: '成绩',
         key: 'score',
         children: [
-          { key: 'score1', label: '语文', width: 90, align: 'center' },
-          { key: 'score2', label: '数学', width: 90 },
-          { key: 'score3', label: '英语', width: 90 },
+          { show: true, key: 'score1', label: '语文', width: 90, align: 'center' },
+          { show: true, key: 'score2', label: '数学', width: 90 },
+          { show: true, key: 'score3', label: '英语', width: 90 },
         ]
       },
-      { label: "性别", key: "gender", filter: row => row.gender === 1 ? '男' : '女', width: 120, },
-      { label: "操作", key: "options", minWidth: 120, fixed: 'right' },
+      { show: true, label: "性别", key: "gender", filter: row => row.gender === 1 ? '男' : '女', width: 120, },
+      { show: true, label: "操作", key: "options", minWidth: 120, fixed: 'right' },
     ]
 
     let tableData = [];
 
-    const instance = new Table({
+    const config = {
       el: '#app',
       data: tableData,
       columns,
@@ -57,11 +60,13 @@
       rowHeight: (row) => ~~(Math.random() * 60 + 20),
       onCellClick: (e) => { console.log(e) },
       // onCellMove: (e) => { console.log(e) },
-    })
+    }
+
+    const instance = new Table(config)
 
     getData().then(res => {
-      tableData = res;
-      instance.setData(res);
+      config.data = res;
+      // instance.setData(res);
     })
 
     function getData () {
@@ -77,9 +82,18 @@
           score1: ~~(Math.random() * 100),
           score2: ~~(Math.random() * 100),
           score3: ~~(Math.random() * 100),
+          options: 'optionsoptionsoptions'
         }))
         resolve(data);
       }, 200));
+    }
+
+    const btn1 = document.querySelector('.btn1');
+    btn1.onclick = function () {
+      console.log(99, config);
+      config.columns[1].show = false;
+      instance.setColumns(config.columns);
+      console.log(config.columns)
     }
   </script>
 </body>

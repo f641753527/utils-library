@@ -62,7 +62,7 @@ export default class CanvasTable extends Drawer {
     this._headerHight = (headerHight as number);
     this.rowHeight = rowHeight as TRowHeight;
 
-    this.setState(data);
+    this.setData(data);
 
     if (onWheel) {
       this.onCanvasWheel = onWheel;
@@ -158,7 +158,7 @@ export default class CanvasTable extends Drawer {
   }
 
   /** 设置初始状态  */
-  public setState(data: IAnyStructure[]) {
+  public setData(data: IAnyStructure[]) {
     let { initialHeight: height, rowHeight } = this;
     this.data = data;
     this.rowHeights = TableUtils.getRowsPosInfo(data, rowHeight);
@@ -182,10 +182,10 @@ export default class CanvasTable extends Drawer {
     let flexWidth = 0;
     let canvasWidth = 0;
     this.maxHeaderDepth = 1;
-    LodashUtils.BFS(this.columns, { callback: (col, depth) => {
+    LodashUtils.BFS<IColumnProps>(this.columns, { callback: (col, _, depth) => {
       /** 顶层的width由children计算而来 */
       this.maxHeaderDepth = Math.max(this.maxHeaderDepth, depth + 1);
-      if (!col.children || !col.children.length) {
+      if ((!col.children || !col.children.length)) {
         staticWidth += col.width || 0;
         flexWidth += col.minWidth && !col.width ? col.minWidth : 0;
       }
@@ -238,7 +238,7 @@ export default class CanvasTable extends Drawer {
     this._canvas.width = this.width;
   }
   /** 设置当前可视区展示的数据 */
-  draw = () => {
+  drawBase = () => {
     // 清除画布
     this.clearCanvans();
 
@@ -280,7 +280,7 @@ export default class CanvasTable extends Drawer {
       this.drawShadow({
         x: this.canvas.width - this.fixedRightWidth,
         y: 0,
-        width: this.fixedLeftWidth,
+        width: this.fixedRightWidth,
         height: this._canvas.height,
         style
       });
@@ -301,7 +301,7 @@ export default class CanvasTable extends Drawer {
     });
   }
   
-  throttleDraw = LodashUtils.throttle(this.draw, 60);
+  draw = LodashUtils.throttle(this.drawBase, 60);
 
   /** 清除画布 */
   clearCanvans() {
@@ -381,7 +381,7 @@ export default class CanvasTable extends Drawer {
     });
     /** body渲染只需要叶子节点 即没有children的列 */
     const columns: IColumnProps[] = []
-    LodashUtils.BFS(blockColumns, { callback: (col, depth) => {
+    LodashUtils.BFS(blockColumns, { callback: (col) => {
       if (!col.children || !col.children.length) {
         columns.push(col as IColumnProps);
       }
@@ -453,7 +453,7 @@ export default class CanvasTable extends Drawer {
       let currentScrollY = scrollY + deltaY;
       currentScrollY = currentScrollY < 0 ? 0 : (currentScrollY > maxScrollY ? maxScrollY : currentScrollY);
       this.scrollY = currentScrollY;
-      this.throttleDraw();
+      this.draw();
       const onCanvasWheel = this.onCanvasWheel;
       if (onCanvasWheel && typeof onCanvasWheel === 'function') {
         onCanvasWheel(currentScrollY, this.maxScrollY);

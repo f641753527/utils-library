@@ -8,10 +8,10 @@ interface IConfig {
     trailing?: boolean;
 }
 
-interface IBFSProps {
+interface IBFSProps<T extends IAnyStructure> {
     childKey?: string;
     /** 遍历子元素之前执行 */
-    callback?: (node: IAnyStructure, depth: number) => void;
+    callback?: (node: T, parentNode: T | null, depth: number) => void;
 }
 
 /**
@@ -50,25 +50,25 @@ export class LodashUtils {
         }
     }
 
-    public static BFS(tree: IAnyStructure[], props?: IBFSProps) {
-        const defaultProps: IBFSProps = {
+    public static BFS<T extends IAnyStructure>(tree: T[], props?: IBFSProps<T>) {
+        const defaultProps: IBFSProps<T> = {
             childKey: 'children',
         };
 
         const options = Object.assign({}, defaultProps, props || {})
-        const { childKey, callback } = options as Required<IBFSProps>;
+        const { childKey, callback } = options as Required<IBFSProps<T>>;
 
         const isValidCallback = callback && typeof callback === 'function';
 
-        const dps = (nodes: IAnyStructure[], depth: number) => {
+        const dps = (nodes: T[], parentNode: T | null, depth: number) => {
             for (const node of nodes) {
                 if (node[childKey] && node[childKey].length) {
-                    dps(node[childKey], depth + 1);
+                    dps(node[childKey], node, depth + 1);
                 }
-                isValidCallback && callback(node, depth);
+                isValidCallback && callback(node, parentNode, depth);
             }
         }
-        dps(tree, 0);
+        dps(tree, null, 0);
     }
 
     public static sleep(duration = 0) {

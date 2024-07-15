@@ -2,6 +2,7 @@ import type { IAnyStructure } from './global'
 
 /** table column 属性 */
 export interface IColumnProps {
+  show?: boolean;
   label: string;
   key: string;
   width?: number;

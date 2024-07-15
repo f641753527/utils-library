@@ -9,7 +9,9 @@ import type {
   IAnyStructure,
   tableCellMouseEventFunc,
   ITableCellMouseEvent,
+  IColumnProps,
 } from '../types';
+import { LodashUtils } from '../utils';
 
 export default class CanvasTableWrapper {
   private querySelector: string;
@@ -63,12 +65,15 @@ export default class CanvasTableWrapper {
     /** 表格实例 */
     this.table = new Table({
       ...combinedTableAttrs,
+      columns: this.cleanColumns(combinedTableAttrs.columns),
       onWheel: this.onCanvasWheel,
       onCellClick: this.onCanvasCellClick,
       onCellMove: this.onCanvasCellMove,
     });
 
     this.onMount();
+
+    setTimeout(() => this.createReactive(options), 0);
   }
 
   /** el 节点挂载 */
@@ -111,6 +116,7 @@ export default class CanvasTableWrapper {
     const { columns, index } = settings;
     if (index === true) {
       columns.unshift({
+        show: true,
         key: '_index',
         label: '序号',
         width: 40,
@@ -118,6 +124,19 @@ export default class CanvasTableWrapper {
         fixed: 'left',
       })
     }
+  }
+
+  private cleanColumns(columns: IColumnProps[]) {
+    LodashUtils.BFS<IColumnProps>(columns, { callback: (node, parent) => {
+      if (node.show !== true) {
+        const parentList = parent ? parent.children : columns;
+        if (!parentList || !parentList.length) return;
+        const index = parentList.findIndex(v => v.key === node.key);
+        if (index === -1) return;
+        parentList.splice(index, 1);
+      }
+    }})
+    return columns;
   }
 
   private init() {
@@ -169,13 +188,13 @@ export default class CanvasTableWrapper {
   private onScrollBarYDrag = (offset: number, maxOffset: number) => {
     const { maxScrollY } = this.table;
     this.table.scrollY = maxScrollY * (offset / (maxOffset || Infinity));
-    this.table.throttleDraw();
+    this.table.draw();
   }
 
   private onScrollBarXDrag = (offset: number, maxOffset: number) => {
     const { maxScrollX } = this.table;
     this.table.scrollX = maxScrollX * (offset / (maxOffset || Infinity));
-    this.table.throttleDraw();
+    this.table.draw();
   }
 
   private onCanvasWheel = (scrollDistance: number, maxScrollDistance: number) => {
@@ -252,7 +271,7 @@ export default class CanvasTableWrapper {
     document.body.appendChild(el);
     this.table.clientWidth = el.clientWidth;
     this.table.init();
-    this.table.draw();
+    this.table.drawBase();
 
     el.parentElement?.removeChild(el);
     this.setWrapperSize();
@@ -267,9 +286,46 @@ export default class CanvasTableWrapper {
   }
 
   public setData(data: IAnyStructure[]) {
-    this.table.setState(data);
+    this.table.setData(data);
     this.table.draw();
     this.scrollBarY.offset = 0;
     this.initScrollBarY();
+  }
+
+  public setColumns(columns: IColumnProps[]) {
+    this.table.columns = this.cleanColumns(columns);
+    this.table.initColumnsWidth();
+    this.initScrollBarX();
+    if (this.table.scrollX > this.table.maxScrollX) {
+      this.table.scrollX = this.table.maxScrollX;
+    }
+    const maxScrollXOffset = this.scrollBarX.outerLength - this.scrollBarX.innerLength;
+    if (this.scrollBarX.offset > maxScrollXOffset) {
+      this.scrollBarX.offset = maxScrollXOffset;
+    }
+    this.table.draw();
+  }
+
+  private createReactive(options: TableWrapperConstructor) {
+    const _this = this;
+    let { columns, data } = options;
+    Object.defineProperty(options, 'data', {
+      set(value: IAnyStructure[]) {
+        data = value;
+        _this.setData(value);
+      },
+      get() {
+        return data;
+      }
+    });
+    Object.defineProperty(options, 'columns', {
+      set(cols: IColumnProps[]) {
+        columns = cols;
+        _this.setColumns(cols);
+      },
+      get() {
+        return columns;
+      }
+    });
   }
 }
