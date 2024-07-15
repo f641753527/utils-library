@@ -72,8 +72,6 @@ export default class CanvasTableWrapper {
     });
 
     this.onMount();
-
-    setTimeout(() => this.createReactive(options), 0);
   }
 
   /** el 节点挂载 */
@@ -306,26 +304,4 @@ export default class CanvasTableWrapper {
     this.table.draw();
   }
 
-  private createReactive(options: TableWrapperConstructor) {
-    const _this = this;
-    let { columns, data } = options;
-    Object.defineProperty(options, 'data', {
-      set(value: IAnyStructure[]) {
-        data = value;
-        _this.setData(value);
-      },
-      get() {
-        return data;
-      }
-    });
-    Object.defineProperty(options, 'columns', {
-      set(cols: IColumnProps[]) {
-        columns = cols;
-        _this.setColumns(cols);
-      },
-      get() {
-        return columns;
-      }
-    });
-  }
 }

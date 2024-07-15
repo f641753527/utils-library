@@ -22,7 +22,7 @@
 
   <script>
 
-    const Table = CanvasTable.default;
+    const { default: Table } = CanvasTable;
 
     const columns = [
       {
@@ -52,7 +52,7 @@
 
     let tableData = [];
 
-    const config = {
+    const instance = new Table({
       el: '#app',
       data: tableData,
       columns,
@@ -60,13 +60,10 @@
       rowHeight: (row) => ~~(Math.random() * 60 + 20),
       onCellClick: (e) => { console.log(e) },
       // onCellMove: (e) => { console.log(e) },
-    }
-
-    const instance = new Table(config)
+    })
 
     getData().then(res => {
-      config.data = res;
-      // instance.setData(res);
+      instance.setData(res);
     })
 
     function getData () {
@@ -90,10 +87,8 @@
 
     const btn1 = document.querySelector('.btn1');
     btn1.onclick = function () {
-      console.log(99, config);
-      config.columns[1].show = false;
-      instance.setColumns(config.columns);
-      console.log(config.columns)
+      columns[1].show = false;
+      instance.setColumns(columns);
     }
   </script>
 </body>
