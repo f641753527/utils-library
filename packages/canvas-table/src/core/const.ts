@@ -18,6 +18,7 @@ export const style: IStyle = {
     iconSize: 16,
     iconColor: '#333'
   },
+  fontWeight: 500,
   padding: [6, 6, 6, 6],
   borderColor: '#d2d2d6',
   borderWidth: 1,
@@ -26,4 +27,7 @@ export const style: IStyle = {
   fontSize: 12,
   primary: '#096dd9',
   shadowColor: 'rgba(0, 0, 0, 0.4)',
+  iconFamily: 'iconfont',
+  iconSize: 12,
+  iconColor: '#333',
 }

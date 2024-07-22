@@ -2,7 +2,7 @@ import { IStyle, POSITION } from '../types';
 import { CanvasUtils } from '../utils';
 
 /** 单元格绘制属性 */
-interface ICellDrawProps {
+export interface ICellDrawProps {
   label: string;
   x: number;
   y: number;
@@ -22,7 +22,7 @@ interface ICellDrawProps {
 }
 
 export default class Drawer {
-  private canvasCtx: CanvasRenderingContext2D;
+  protected canvasCtx: CanvasRenderingContext2D;
 
   constructor(ctx: CanvasRenderingContext2D) {
     this.canvasCtx = ctx;
@@ -72,7 +72,7 @@ export default class Drawer {
     let initLeft = x;
     if (icon) {
       const { style: iconStyle, direction = 'right' } = icon;
-      const { iconSize, padding: iconPadding } = (iconStyle || style) as Required<IStyle>;
+      const { iconSize, padding: iconPadding } = Object.assign({}, style, iconStyle) as Required<IStyle>;;
       const iconWidth = iconSize + iconPadding[1] + iconPadding[3];
       maxDrawWidth = width - iconWidth;
       if (direction === 'left') {
@@ -92,7 +92,8 @@ export default class Drawer {
     /** 绘制icon */
     if (icon) {
       const { text: iconText, direction = 'right', style: iconStyle  } = icon;
-      const { iconColor, iconFamily, iconSize, padding } = (iconStyle || style) as Required<IStyle>;
+      const { iconColor, iconFamily, iconSize, padding } = Object.assign({}, style, iconStyle) as Required<IStyle>;
+
       ctx.font = `${fontWeight} ${iconSize}px ${iconFamily}`;
       ctx.fillStyle = iconColor;
       const left = direction === 'left' ? x + padding[3] : x + (isOver ? maxDrawWidth : textWidth) + padding[3];

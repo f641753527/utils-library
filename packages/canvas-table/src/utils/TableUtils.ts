@@ -1,6 +1,6 @@
 import Table from '../core/Table';
 import { LodashUtils } from './LodashUtils';
-import type { IAnyStructure, IColumnProps, ITableCellMouseEvent } from '../types';
+import type { IAnyStructure, IColumnProps, IStyle, ITableCellMouseEvent } from '../types';
 
 /** 行数据 位置信息 */
 export interface IRowPosInfo {
@@ -122,5 +122,33 @@ export class TableUtils {
             top: top + headerTotalHeight - scrollY,
             height,
         }
+    }
+
+    /** 获取渲染formatter 单项的padding */
+    public static getFormatterItemPadding(baseStyle: IStyle, itemStyle: IStyle = {}, index: number, length: number) {
+        const { padding } = baseStyle as Required<IStyle>;
+
+        let formatterItemPadding = itemStyle.padding || [0, 0, 0, 0];
+
+        if (!itemStyle.padding && index === 0) {
+            formatterItemPadding[3] = padding[3];
+        }
+        if (!itemStyle.padding && index === length - 1) {
+            formatterItemPadding[1] = padding[1];
+        }
+        return formatterItemPadding
+    }
+
+    public static getFormatterItemIconWidth(icon: any, style: IStyle) {
+        let iconWidth = 0;
+        if (icon) {
+            const { style: iconStyle } = icon;
+            const iconCombinedStyle = { ...style, ...(iconStyle || {}) } as Required<IStyle>;
+            iconWidth += iconCombinedStyle.iconSize;
+            if (iconStyle?.padding) {
+                iconWidth += (iconStyle.padding[1] + iconStyle.padding[3]);
+            }
+        }
+        return iconWidth;
     }
 }

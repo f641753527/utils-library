@@ -35,7 +35,29 @@
         tooltip: ({ row }) => `<div><div>环比: ${row.name}</div><div>差值: ${row.age}</div></div>`
       },
       { show: true, label: "年龄", key: "age", width: 120, align: 'right' },
-      { show: true, label: "学校", key: "school", width: 120 },
+      {
+        show: true,
+        label: "学校",
+        key: "school",
+        width: 120,
+        formatter: ({ row, col, width }) => [
+          {
+            label: '2352352353253253252365547457',
+            width: 70,
+          },
+          {
+            label: '2352352353253253252365547457',
+            width: 30,
+          },
+          {
+            icon: {
+              text: '&#xe7dd;',
+              style: {
+              },
+            }
+          },
+        ]
+      },
       {
         show: true,
         label: '成绩',

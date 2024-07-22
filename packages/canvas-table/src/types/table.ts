@@ -1,4 +1,7 @@
-import type { IAnyStructure } from './global'
+import type { IAnyStructure } from './global';
+import type { ICellDrawProps } from '../core/Drawer';
+
+type tColumnFormatterReturnType = Pick<ICellDrawProps, 'label' | 'style' | 'align' | 'icon' | 'width'>
 
 /** table column 属性 */
 export interface IColumnProps {
@@ -24,6 +27,7 @@ export interface IColumnProps {
   /** 表头气泡 */
   headerTooltip?: string;
   tooltip?: string | ((ev: ITableCellMouseEvent) => string);
+  formatter?: (c: { row: IAnyStructure; col: IColumnProps; width: number}) => tColumnFormatterReturnType[];
 }
 
 export type TRowHeight = number | ((row: IAnyStructure, i: number) => number)

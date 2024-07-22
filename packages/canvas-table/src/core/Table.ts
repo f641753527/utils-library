@@ -9,7 +9,7 @@ import type {
 } from '../types';
 import { POSITION } from '../types'
 import { style } from './const';
-import { LodashUtils, TableUtils } from '../utils';
+import { LodashUtils, TableUtils, CanvasUtils } from '../utils';
 import type { IRowPosInfo } from '../utils';
 
 
@@ -389,22 +389,27 @@ export default class CanvasTable extends Drawer {
 
     tableData.forEach((row, rowIndex) => {
       columns.forEach((col, i) => {
-        const { key, filter, align, _realWidth, _top, _height } = col;
+        const { key, filter, align, _realWidth, _top, _height, formatter, } = col;
         const x = TableUtils.getColumnActualLeft(col, scrollX, maxScrollX, type);
         const width = _realWidth as number;
         const { height, top } = rowHeights[row.index];
         const y = (_top as number) + (_height as number) + (top - scrollY);
-        const label = key === '_index' ? (row.index + 1)
-          : filter ? filter(row, col, rowIndex) : row[key];
-        this.drawCellText({
-          label,
-          x: x + padding[3],
-          y,
-          width: width - padding[1] - padding[3],
-          height,
-          style,
-          align: align,
-        });
+        /** 自定义渲染 */
+        if (formatter && typeof formatter === 'function') {
+          this.formatterRender(row, col, width, formatter, x, y, height);
+        } else {
+          const label = key === '_index' ? (row.index + 1)
+            : filter ? filter(row, col, rowIndex) : row[key];
+          this.drawCellText({
+            label,
+            x: x + padding[3],
+            y,
+            width: width - padding[1] - padding[3],
+            height,
+            style,
+            align: align,
+          });
+        }
         const positions = [POSITION.RIGHT, POSITION.BOTTOM];
         positions.forEach(position => {
           this.drawCellBorder({
@@ -418,6 +423,51 @@ export default class CanvasTable extends Drawer {
         })
       })
     });
+  }
+
+  private formatterRender(row: IAnyStructure, col: IColumnProps, width: number, formatter: IColumnProps['formatter'],
+    x: number, y: number, height: number) {
+
+    if (!formatter) return;
+    const result = formatter({ row, col, width });
+    /** 当前渲染位置x */
+    let _renderLeft = x;
+    result.forEach((item, itemIndex) => {
+      /** 单元格已满 */
+      if (x + width - _renderLeft <= 0) return;
+      const { width: itemWidth, style: itemStyle, icon, align, label  } = item;
+      if (icon) {
+        icon.style = icon.style || {};
+        icon.style.padding = icon.style.padding || [0, 0, 0, 0];
+      }
+      const combinedStyle = { ...style, ...(itemStyle || {}) } as Required<IStyle>;
+      const formatterItemPadding = TableUtils.getFormatterItemPadding(style, itemStyle, itemIndex, result.length);
+      /** 单元格剩余宽度 */
+      const cellLeftWidth = x + width - _renderLeft;
+      /** 当前项宽度 */
+      const formatterItemWidth = Math.min(itemWidth || cellLeftWidth, cellLeftWidth);
+      const iconWidth = TableUtils.getFormatterItemIconWidth(icon, style);
+      const formatterItemMaxWidth = formatterItemWidth - formatterItemPadding[1] - formatterItemPadding[3] - iconWidth;
+      let { text, width: textWidth, isOver } = CanvasUtils.textOverflow(
+        this.canvasCtx, 
+        label,
+        formatterItemMaxWidth,
+        combinedStyle.fontSize,
+        combinedStyle.fontWeight
+      );
+      textWidth = isOver ? formatterItemMaxWidth : textWidth;
+      this.drawCellText({
+        label: text,
+        x: _renderLeft + formatterItemPadding[3],
+        y,
+        width: textWidth + iconWidth,
+        height,
+        style,
+        align: align,
+        icon,
+      });
+      _renderLeft += textWidth + iconWidth + formatterItemPadding[1] + formatterItemPadding[3];
+    })
   }
 
   private initEvents = () => {
